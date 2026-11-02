@@ -13,8 +13,8 @@ import { FocusTrapDirective } from '../../../shared/focus-trap.directive';
         <div class="flow-dialog" appFocusTrap role="dialog" aria-modal="true" [attr.aria-label]="store.actionTitle()" (keydown.escape)="store.closeDialog()">
           <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;"><span style="font-size: 17px; font-weight: 600;">{{ store.actionTitle() }}</span><button type="button" class="flow-button" aria-label="Cerrar diálogo" (click)="store.closeDialog()">×</button></div>
           <div style="font-size: 13px; line-height: 1.6;">{{ d.material }} · {{ d.kg }}<br />{{ d.person }}<br /><span style="color: #5d6b5f;">Ventana actual: {{ d.window }}</span></div>
-          @if (store.isReschedule()) {
-            <label style="font-size: 12px; font-weight: 600;">Nueva fecha<input class="flow-field" type="date" aria-label="Nueva fecha" [min]="store.today" [value]="store.scheduleDate()" (input)="store.onScheduleDate($any($event.target).value)" /></label>
+          @if (store.showSchedule()) {
+            <label style="font-size: 12px; font-weight: 600;">{{ store.isCoordinate() ? 'Fecha acordada' : 'Nueva fecha' }}<input class="flow-field" type="date" aria-label="Fecha acordada" [min]="store.today" [value]="store.scheduleDate()" (input)="store.onScheduleDate($any($event.target).value)" /></label>
             <label style="font-size: 12px; font-weight: 600;">Franja horaria<select class="flow-field" aria-label="Franja horaria" (change)="store.onScheduleSlot($any($event.target).value)">@for (t of store.timeSlots; track t) {<option [value]="t" [selected]="t === store.scheduleSlot()">{{ t }}</option>}</select></label>
           }
           @if (store.isCancel()) {

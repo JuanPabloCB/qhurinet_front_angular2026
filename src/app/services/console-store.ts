@@ -73,6 +73,20 @@ const pubRecord = (p: NewPub): Delivery => ({
   window: p.window, state: 'Esperando', stateBg: '#fdf3dd', stateFg: '#8a6a1f',
 });
 
+// Ciclo de vida del recojo (US 41-EP2, simulado): Creada → Coordinada → En camino
+// → Completado, con Reprogramado/Cancelado como estados derivados. Reclamar un
+// anuncio deja el recojo en «Creada»; coordinar día y franja lo pasa a
+// «Coordinada»; iniciar el recorrido lo pone «En camino».
+const SCANNABLE_STATES = ['Coordinada', 'En camino'] as const;
+const STATE_STYLE: Record<string, readonly [string, string]> = {
+  Creada: ['#fdf3dd', '#8a6a1f'],
+  Coordinada: ['#eceee7', '#5d6b5f'],
+  'En camino': ['#eef2e4', '#3f6224'],
+  Completado: ['#eef2e4', '#3f6224'],
+  Reprogramado: ['#fdf3dd', '#8a6a1f'],
+  Cancelado: ['#f7e9e4', '#b1573f'],
+};
+
 export interface DeliveryRow extends Delivery {
   rowBg: string;
   menuOpen: boolean;
@@ -80,6 +94,9 @@ export interface DeliveryRow extends Delivery {
   lockHint: string;
   priorityLabel: string;
   canTrack: boolean;
+  canScan: boolean;
+  canCoordinate: boolean;
+  canStartRoute: boolean;
 }
 
 /**
@@ -120,7 +137,7 @@ export class ConsoleStore {
   // ---- Entregas
   readonly rowUpdates = signal<Record<string, RowUpdate>>({});
   readonly menuRow = signal<string | null>(null);
-  readonly dialog = signal<'' | 'guardar' | 'reprogramar' | 'cancelar' | 'qr'>('');
+  readonly dialog = signal<'' | 'guardar' | 'reprogramar' | 'coordinar' | 'cancelar' | 'qr'>('');
   readonly actionRow = signal<string | null>(null);
   readonly newPubs = signal<NewPub[]>([]);
   readonly scheduleDate = signal('');
@@ -161,6 +178,8 @@ export class ConsoleStore {
   readonly editProfile = signal(false);
   readonly profileForm = signal<Profile | null>(null);
   readonly profileErrors = signal<Record<string, string>>({});
+  // Disponibilidad / visibilidad del perfil (US 28-EP4, simulado).
+  readonly available = signal(true);
 
   // ---- Documentos
   readonly docsOpen = signal(false);
@@ -268,11 +287,14 @@ export class ConsoleStore {
     if (priority) priority.split(',').forEach((id) => { if (rows.some((r) => r.id === id)) this.rowUpdates.update((u) => ({ ...u, [id]: { ...u[id], priority: true } })); });
     const dialog = get('dialog');
     const row = get('row');
-    if (dialog && ['reprogramar', 'cancelar', 'qr'].includes(dialog) && row && rows.some((r) => r.id === row)) {
-      this.openAction(dialog as 'reprogramar' | 'cancelar' | 'qr', row);
-      if (dialog === 'reprogramar') {
-        if (validDate(get('date') ?? '')) this.scheduleDate.set(get('date')!);
-        if (inList(TIME_SLOTS, get('slot'))) this.scheduleSlot.set(get('slot')!);
+    if (dialog && ['reprogramar', 'coordinar', 'cancelar', 'qr'].includes(dialog) && row && rows.some((r) => r.id === row)) {
+      // El QR sólo se abre si la recolección ya admite escaneo (Coordinada / En camino).
+      if (dialog !== 'qr' || this.canScan(row)) {
+        this.openAction(dialog as 'reprogramar' | 'coordinar' | 'cancelar' | 'qr', row);
+        if (dialog === 'reprogramar' || dialog === 'coordinar') {
+          if (validDate(get('date') ?? '')) this.scheduleDate.set(get('date')!);
+          if (inList(TIME_SLOTS, get('slot'))) this.scheduleSlot.set(get('slot')!);
+        }
       }
     } else if (dialog === 'guardar') {
       this.dialog.set('guardar');
@@ -337,17 +359,22 @@ export class ConsoleStore {
   private rowView(id: string): DeliveryRow {
     const row = this.delivery(id)!;
     const locked = ['Completado', 'Cancelado'].includes(row.state);
+    const style = STATE_STYLE[row.state];
+    const isRecojo = rowRole(row.id) === 'reciclador';
     return {
       ...row,
       priority: !!row.priority,
       rowBg: row.priority ? '#fdf3dd' : '#ffffff',
-      stateBg: row.state === 'Cancelado' ? '#f7e9e4' : row.state === 'Reprogramado' ? '#fdf3dd' : row.stateBg,
-      stateFg: row.state === 'Cancelado' ? '#b1573f' : row.state === 'Reprogramado' ? '#8a6a1f' : row.stateFg,
+      stateBg: style ? style[0] : row.stateBg,
+      stateFg: style ? style[1] : row.stateFg,
       menuOpen: this.menuRow() === row.id,
       locked,
       lockHint: locked ? 'Esta recolección ya está cerrada.' : '',
       priorityLabel: row.priority ? 'Quitar prioridad' : 'Marcar como prioritaria',
       canTrack: rowRole(row.id) === 'generador' && row.state === 'En camino',
+      canScan: isRecojo && !!row.code && (SCANNABLE_STATES as readonly string[]).includes(row.state),
+      canCoordinate: isRecojo && row.state === 'Creada',
+      canStartRoute: isRecojo && row.state === 'Coordinada',
     };
   }
 
@@ -386,7 +413,18 @@ export class ConsoleStore {
     const row = this.delivery(id);
     return !row || ['Completado', 'Cancelado'].includes(row.state);
   }
-  openScannerRow(id: string): void { this.openAction('qr', id); }
+  /** Coordina día y franja de un recojo recién creado (Creada → Coordinada). */
+  coordinate(id: string): void { if (this.delivery(id)?.state === 'Creada') this.openAction('coordinar', id); }
+  /** El reciclador arranca el recorrido (Coordinada → En camino): habilita QR y seguimiento. */
+  startRoute(id: string): void {
+    if (this.delivery(id)?.state === 'Coordinada') { this.changeDelivery(id, { state: 'En camino' }); this.menuRow.set(null); }
+  }
+  /** El QR solo se habilita una vez coordinada la recolección o en camino (US 07-EP2). */
+  private canScan(id: string): boolean {
+    const d = this.delivery(id);
+    return !!d && !!d.code && (SCANNABLE_STATES as readonly string[]).includes(d.state);
+  }
+  openScannerRow(id: string): void { if (this.canScan(id)) this.openAction('qr', id); }
 
   openChat(id: string): void {
     const row = this.delivery(id);
@@ -398,7 +436,7 @@ export class ConsoleStore {
     this.go('chats');
   }
 
-  openAction(dialog: 'guardar' | 'reprogramar' | 'cancelar' | 'qr', id: string): void {
+  openAction(dialog: 'guardar' | 'reprogramar' | 'coordinar' | 'cancelar' | 'qr', id: string): void {
     const row = this.delivery(id);
     if (!row) return;
     this.dialog.set(dialog);
@@ -415,7 +453,7 @@ export class ConsoleStore {
   confirmAction(): void {
     const row = this.delivery(this.actionRow());
     if (!row || ['Completado', 'Cancelado'].includes(row.state)) return;
-    if (this.dialog() === 'reprogramar') {
+    if (this.dialog() === 'reprogramar' || this.dialog() === 'coordinar') {
       if (!validDate(this.scheduleDate()) || this.scheduleDate() < todayDate()) {
         this.formError.set('Elige una fecha válida desde hoy.');
         return;
@@ -424,7 +462,8 @@ export class ConsoleStore {
         this.formError.set('Elige una franja horaria.');
         return;
       }
-      this.changeDelivery(row.id, { state: 'Reprogramado', date: this.scheduleDate(), slot: this.scheduleSlot() });
+      const state = this.dialog() === 'coordinar' ? 'Coordinada' : 'Reprogramado';
+      this.changeDelivery(row.id, { state, date: this.scheduleDate(), slot: this.scheduleSlot() });
     } else if (this.dialog() === 'cancelar') {
       const reason = this.reason().trim();
       if (!reason) { this.formError.set('Indica el motivo de la cancelación.'); return; }
@@ -435,7 +474,7 @@ export class ConsoleStore {
 
   confirmDelivery(manual = false): void {
     const row = this.delivery(this.actionRow());
-    if (!row || !row.code || ['Completado', 'Cancelado'].includes(row.state)) return;
+    if (!row || !row.code || !(SCANNABLE_STATES as readonly string[]).includes(row.state)) return;
     if (manual && this.manualCode().trim().toUpperCase() !== row.code) {
       this.formError.set('El código no corresponde a esta entrega. Revisa el código de muestra.');
       return;
@@ -457,7 +496,7 @@ export class ConsoleStore {
     const chat = this.chatDelivery();
     const id = this.activeTab() === 'chats' && chat ? chat.id
       : routeStats(this.routeIds()).stops.find((p) => p.pickup)?.pickup || 'r1';
-    this.openAction('qr', id);
+    if (this.canScan(id)) this.openAction('qr', id);
   }
   closeScanner(): void { this.closeDialog(); }
 
@@ -711,6 +750,7 @@ export class ConsoleStore {
     if (a === 'mapa') return ADS.length + ' anuncios · ' + RECYCLING_POINTS.length + ' puntos de reciclaje · Lima';
     if (a === 'recojos') return this.activePickups() + ' activos · ' + this.completedPickups() + ' completados este mes';
     if (a === 'publicaciones') return this.activePublications() + ' activos · 12 completados este mes';
+    if (a === 'perfil') return (this.isGen() ? 'Generador' : 'Reciclador') + ' verificado · Lima Centro';
     return HEADERS[a][1];
   });
   readonly statusLabel = computed(() => (this.isGen() ? this.activePublications() + ' ANUNCIOS ACTIVOS' : this.activePickups() + ' RECOJOS ACTIVOS'));
@@ -753,7 +793,10 @@ export class ConsoleStore {
     return d ? d.kg + ' · ' + d.material : this.activeThread().tag;
   });
   readonly chatCanTrack = computed(() => this.isGen() && this.chatDelivery()?.state === 'En camino');
-  readonly chatCanScan = computed(() => !this.isGen() && !!this.chatDelivery());
+  readonly chatCanScan = computed(() => {
+    const d = this.chatDelivery();
+    return !this.isGen() && !!d && !!d.code && (SCANNABLE_STATES as readonly string[]).includes(d.state);
+  });
   selectThread(id: string): void {
     const rows = this.isGen() ? PUBLICATIONS : PICKUPS;
     this.thread.set(id);
@@ -774,7 +817,7 @@ export class ConsoleStore {
   //  Publicar
   // =====================================================================
   readonly matChips = computed(() =>
-    MAT_ORDER.map((k) => ({ key: k, label: MATERIALS[k].label, ...this.chip(MATERIALS[k].label, !!this.materials()[k], '#a3d24a', '#16281f') })),
+    MAT_ORDER.map((k) => ({ key: k, label: MATERIALS[k].label, active: !!this.materials()[k], ...this.chip(MATERIALS[k].label, !!this.materials()[k], '#a3d24a', '#16281f') })),
   );
   private readonly pickedMats = computed(() => MAT_ORDER.filter((k) => this.materials()[k]));
   private readonly previewMat = computed(() => MATERIALS[this.pickedMats()[0]] ?? MATERIALS['carton']);
@@ -798,18 +841,28 @@ export class ConsoleStore {
   readonly previewWindow = computed(() => (this.pubDay().trim() || this.pubTime().trim() ? (this.pubDay().trim() + ' ' + this.pubTime().trim()).trim().toUpperCase() : 'SIN HORARIO'));
   readonly previewPay = computed(() => this.pubPay().toUpperCase());
   readonly publishHint = computed(() => (this.pickedMats().length ? 'Visible para 14 recicladores cerca' : 'Elige al menos un material'));
+  // Límite de la nota (US 02-EP1): tope blando. En vez de cortar el texto en
+  // seco, se deja escribir y, si se pasa, se muestra un error que bloquea Publicar.
+  readonly noteLimit = 240;
   readonly errQty = computed(() => this.pubErrors()['qty'] || '');
   readonly errMats = computed(() => this.pubErrors()['mats'] || '');
   readonly errWindow = computed(() => this.pubErrors()['window'] || '');
+  readonly errNote = computed(() => this.pubErrors()['note'] || '');
+  readonly noteCount = computed(() => this.note().length);
+  readonly noteOver = computed(() => this.note().length > this.noteLimit);
+  readonly noteCounter = computed(() => this.note().length + '/' + this.noteLimit);
+  readonly noteCounterFg = computed(() => (this.noteOver() ? '#b1573f' : '#8b9186'));
   readonly qtyBorder = computed(() => (this.pubErrors()['qty'] ? '#b1573f' : '#e2e5dc'));
   readonly windowBorder = computed(() => (this.pubErrors()['window'] ? '#b1573f' : '#e2e5dc'));
+  readonly noteBorder = computed(() => (this.noteOver() || this.pubErrors()['note'] ? '#b1573f' : '#e2e5dc'));
   toggleMat(k: string): void { this.materials.update((m) => ({ ...m, [k]: !m[k] })); }
   onQty(v: string): void { this.qty.set(v.replace(/[^\d.,]/g, '').slice(0, 5)); }
   setQty(v: string): void { this.qty.set(v); }
   onPubDay(v: string): void { this.pubDay.set(v.slice(0, 20)); }
   onPubTime(v: string): void { this.pubTime.set(v.slice(0, 20)); }
   selectPay(o: string): void { this.pubPay.set(o); }
-  onNote(v: string): void { this.note.set(v.slice(0, 240)); }
+  // Tope físico amplio (anti-desbordes) para poder superar el límite blando y ver el error.
+  onNote(v: string): void { this.note.set(v.slice(0, 2000)); this.pubErrors.update((e) => ({ ...e, note: '' })); }
   onPhoto(input: HTMLInputElement): void { this.readFile(input, (name, url) => { this.photo.set(url); this.photoName.set(name); this.dismissedSuggestion.set(''); }); }
   removePhoto(): void { this.photo.set(''); this.photoName.set(''); }
   applySuggestion(): void {
@@ -827,6 +880,7 @@ export class ConsoleStore {
     else if (!(qty > 0)) errors['qty'] = 'La cantidad debe ser mayor que cero.';
     if (!mats.length) errors['mats'] = 'Elige al menos un tipo de material.';
     if (!this.pubDay().trim() || !this.pubTime().trim()) errors['window'] = 'Indica el día y el rango de horas en que pueden pasar.';
+    if (this.note().length > this.noteLimit) errors['note'] = 'Error: la observación excede el límite de ' + this.noteLimit + ' caracteres.';
     if (Object.keys(errors).length) { this.pubErrors.set(errors); return; }
     const pub: NewPub = {
       id: 'n' + (this.newPubs().length + 1), mats: mats.slice(),
@@ -844,6 +898,42 @@ export class ConsoleStore {
   // =====================================================================
   readonly profileRoleLine = computed(() => (this.isGen() ? 'Generador' : 'Reciclador') + ' · Lima Centro');
   readonly profileMats = computed(() => this.profile().mats.map((k) => MATERIALS[k].label).join(', ') || 'Sin materiales');
+
+  // ---- Disponibilidad / visibilidad (US 28-EP4, simulado)
+  readonly visibilityLabel = computed(() => (this.available() ? 'Activa' : 'Oculta'));
+  readonly visibilityFg = computed(() => (this.available() ? '#4c7a2f' : '#b1573f'));
+  readonly visibilityHint = computed(() =>
+    this.available()
+      ? (this.isGen() ? 'Tus anuncios aparecen en el mapa de los recicladores.' : 'Apareces como reciclador disponible en el mapa.')
+      : (this.isGen() ? 'Tus anuncios quedan ocultos: nadie nuevo puede reclamarlos.' : 'Estás oculto en el mapa: no recibirás anuncios nuevos.'),
+  );
+  toggleAvailability(): void { this.available.update((v) => !v); }
+
+  // ---- Historial de actividad (datos de muestra; alimenta la tabla y el CSV)
+  readonly history: ReadonlyArray<{ type: string; material: string; party: string; date: string; rating: string }> = [
+    { type: 'Recojo', material: 'Bolsas de plástico · 9 kg', party: 'Emilia Valencia', date: 'Hace 8 h', rating: '5.0' },
+    { type: 'Recojo', material: 'Cartón plegado · 22 kg', party: 'Juan Flores', date: 'Hace 20 h', rating: '4.8' },
+    { type: 'Recojo', material: 'Vidrio mixto · 14 kg', party: 'Camila Salazar', date: 'Hace 2 d', rating: '4.9' },
+  ];
+  /** Historial como CSV (se genera en el cliente, sin backend). Separado para poder probarlo. */
+  historyCsv(): string {
+    const esc = (c: string) => '"' + String(c).replace(/"/g, '""') + '"';
+    const header = ['Tipo', 'Material', 'Contraparte', 'Fecha', 'Valoración'];
+    const rows = this.history.map((h) => [h.type, h.material, h.party, h.date, h.rating]);
+    return [header, ...rows].map((r) => r.map(esc).join(',')).join('\r\n');
+  }
+  /** Descarga el historial como archivo CSV (US 36-EP5). */
+  exportHistoryCsv(): void {
+    const blob = new Blob(['﻿' + this.historyCsv()], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'qhurinet-historial.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+  /** Comprobante en PDF: abre el diálogo de impresión del navegador (US 36-EP5). */
+  exportHistoryPdf(): void { window.print(); }
   readonly pfMatChips = computed(() => {
     const pf = this.profileForm();
     return MAT_ORDER.map((k) => ({ key: k, label: MATERIALS[k].label, ...this.chip(MATERIALS[k].label, !!(pf && pf.mats.includes(k)), '#a3d24a', '#16281f') }));
@@ -937,7 +1027,8 @@ export class ConsoleStore {
   readonly reportChips = computed(() => REPORT_CATEGORIES.map((c) => ({ label: c, border: this.reportCategory() === c ? '#16281f' : '#d8dcd2', weight: this.reportCategory() === c ? '600' : '400' })));
   readonly ticketsView = computed(() =>
     [...this.newTickets()].reverse().concat(TICKETS).map((t) => ({
-      id: t.id, title: t.title, state: t.state, bg: TICKET_STATES[t.state][0], fg: TICKET_STATES[t.state][1], meta: t.category + (t.evidence ? ' · con evidencia' : ''),
+      id: t.id, title: t.title, state: t.state, bg: TICKET_STATES[t.state][0], fg: TICKET_STATES[t.state][1],
+      meta: t.category + (t.evidence ? ' · evidencia: ' + (t.evidenceName || 'adjunta') : ''),
     })),
   );
   toggleFaq(i: number): void { this.faqOpen.update((f) => ({ ...f, [i]: !f[i] })); }
@@ -949,7 +1040,8 @@ export class ConsoleStore {
     const text = this.reportText().trim();
     if (!text) { this.reportError.set('Cuéntanos qué pasó antes de enviar el reporte.'); return; }
     const id = '#' + (4950 + this.newTickets().length);
-    this.newTickets.update((t) => [...t, { id, title: text.slice(0, 80), category: this.reportCategory(), state: 'Abierto', evidence: !!this.reportFile() }]);
+    const evidenceName = this.reportFile().trim();
+    this.newTickets.update((t) => [...t, { id, title: text.slice(0, 80), category: this.reportCategory(), state: 'Abierto', evidence: !!evidenceName, evidenceName: evidenceName.slice(0, 60) }]);
     this.reportText.set(''); this.reportFile.set(''); this.reportError.set('');
     this.reportNotice.set('Ticket ' + id + ' creado. Te respondemos en menos de 12 minutos.');
   }
@@ -978,12 +1070,19 @@ export class ConsoleStore {
   readonly actionDelivery = computed(() => this.delivery(this.actionRow()));
   readonly lockedAction = computed(() => { const d = this.actionDelivery(); return !d || ['Completado', 'Cancelado'].includes(d.state); });
   private readonly validActionRole = computed(() => { const d = this.actionDelivery(); return !!d && rowRole(d.id) === (this.isGen() ? 'generador' : 'reciclador'); });
-  readonly actionDialog = computed(() => this.validActionRole() && ['reprogramar', 'cancelar'].includes(this.dialog()));
-  readonly actionTitle = computed(() => (this.dialog() === 'cancelar' ? 'Cancelar recolección' : 'Reprogramar recolección'));
-  readonly isReschedule = computed(() => this.dialog() === 'reprogramar');
+  readonly actionDialog = computed(() => this.validActionRole() && ['reprogramar', 'coordinar', 'cancelar'].includes(this.dialog()));
+  readonly actionTitle = computed(() => {
+    const d = this.dialog();
+    return d === 'cancelar' ? 'Cancelar recolección' : d === 'coordinar' ? 'Coordinar recolección' : 'Reprogramar recolección';
+  });
+  readonly isCoordinate = computed(() => this.dialog() === 'coordinar');
+  readonly showSchedule = computed(() => this.dialog() === 'reprogramar' || this.dialog() === 'coordinar');
   readonly isCancel = computed(() => this.dialog() === 'cancelar');
   readonly saveDialog = computed(() => this.activeTab() === 'mapa' && this.dialog() === 'guardar');
-  readonly scannerOpen = computed(() => !this.isGen() && !!this.actionDelivery() && this.dialog() === 'qr' && !!this.actionDelivery()!.code);
+  readonly scannerOpen = computed(() => {
+    const d = this.actionDelivery();
+    return !this.isGen() && !!d && this.dialog() === 'qr' && !!d.code && (SCANNABLE_STATES as readonly string[]).includes(d.state);
+  });
   readonly scannerTitle = computed(() => { const d = this.actionDelivery(); return d ? d.place + ' · ' + d.kg : ''; });
   readonly trackingVisible = computed(() => { const t = this.delivery(this.tracking()); return this.isGen() && ['publicaciones', 'chats'].includes(this.activeTab()) && !!t && t.state === 'En camino'; });
   readonly tracked = computed(() => this.delivery(this.tracking()));

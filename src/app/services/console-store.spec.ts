@@ -50,7 +50,7 @@ describe('ConsoleStore', () => {
     store.onScheduleDate('2000-01-01');
     store.confirmAction();
     expect(store.formError()).toBe('Elige una fecha válida desde hoy.');
-    expect(store.delivery('r2')!.state).toBe('Confirmado');
+    expect(store.delivery('r2')!.state).toBe('Creada');
   });
 
   it('cancelar una entrega exige motivo y retira su parada de la ruta', () => {
@@ -128,6 +128,99 @@ describe('ConsoleStore', () => {
     store.onPfField('phone', '123');
     store.saveProfile();
     expect(store.profileErrors()['phone']).toBeTruthy();
+  });
+
+  // --- US 41-EP2: reclamo y coordinación de la recolección ---
+  const pickup = (id: string) => store.pickups().find((r) => r.id === id)!;
+
+  it('un recojo Creada ofrece Coordinar y no deja escanear el QR todavía', () => {
+    const row = pickup('r2');
+    expect(row.state).toBe('Creada');
+    expect(row.canCoordinate).toBe(true);
+    expect(row.canScan).toBe(false);
+    expect(row.canStartRoute).toBe(false);
+    // El QR no se abre mientras no esté coordinada.
+    store.openScannerRow('r2');
+    expect(store.dialog()).toBe('');
+  });
+
+  it('coordinar → iniciar recorrido → QR recorre el ciclo completo', () => {
+    store.coordinate('r2');
+    expect(store.dialog()).toBe('coordinar');
+    store.onScheduleDate('2030-03-10');
+    store.onScheduleSlot('11:00–14:00');
+    store.confirmAction();
+    expect(pickup('r2').state).toBe('Coordinada');
+    expect(pickup('r2').canStartRoute).toBe(true);
+    expect(pickup('r2').canScan).toBe(true); // ya se habilita el QR
+
+    store.startRoute('r2');
+    expect(pickup('r2').state).toBe('En camino');
+
+    store.openScannerRow('r2');
+    expect(store.dialog()).toBe('qr');
+    store.onManualCode('qh-r2');
+    store.confirmManual();
+    expect(pickup('r2').state).toBe('Completado');
+    expect(store.rateOpen()).toBe(true);
+  });
+
+  // --- US 02-EP1: límite de la nota del anuncio ---
+  it('una nota que supera el límite bloquea Publicar con un error', () => {
+    store.toggleMat('pet');
+    store.setQty('12');
+    store.onPubDay('Hoy');
+    store.onPubTime('14:00 – 18:00');
+    store.onNote('x'.repeat(store.noteLimit + 1));
+    expect(store.noteOver()).toBe(true);
+    store.publishAd();
+    expect(store.errNote()).toContain('límite');
+    expect(store.newPubs().length).toBe(0); // no se publicó
+  });
+
+  // --- Nota 7: un anuncio recién publicado usa el mismo menú por fila ---
+  it('un anuncio recién publicado admite prioridad y reprogramación por fila', () => {
+    store.role.set('generador');
+    store.toggleMat('pet');
+    store.setQty('10');
+    store.onPubDay('Hoy');
+    store.onPubTime('14:00 – 18:00');
+    store.publishAd();
+    const id = store.publications()[0].id;
+    expect(id).toBe('n1');
+    store.togglePriority(id);
+    expect(store.delivery(id)!.priority).toBe(true);
+    store.reschedule(id);
+    expect(store.dialog()).toBe('reprogramar');
+    expect(store.actionRow()).toBe(id);
+    expect(store.actionDialog()).toBe(true);
+  });
+
+  // --- US 36-EP5: comprobante CSV del historial ---
+  it('el historial se exporta a CSV con cabecera y una fila por actividad', () => {
+    const csv = store.historyCsv();
+    const lines = csv.split('\r\n');
+    expect(lines[0]).toContain('Tipo');
+    expect(lines.length).toBe(store.history.length + 1);
+    expect(csv).toContain('Emilia Valencia');
+  });
+
+  // --- US 28-EP4: disponibilidad / visibilidad ---
+  it('el interruptor de visibilidad alterna entre Activa y Oculta', () => {
+    expect(store.visibilityLabel()).toBe('Activa');
+    store.toggleAvailability();
+    expect(store.available()).toBe(false);
+    expect(store.visibilityLabel()).toBe('Oculta');
+  });
+
+  // --- US 12-EP2 / 39-EP6: reporte con evidencia ---
+  it('un reporte con evidencia crea un ticket Abierto que muestra el archivo', () => {
+    store.onReportText('El material no coincide con el anuncio.');
+    store.onReportFile({ files: [{ name: 'foto-evidencia.jpg', type: 'text/plain' }] } as unknown as HTMLInputElement);
+    store.sendReport();
+    const ticket = store.ticketsView()[0];
+    expect(ticket.state).toBe('Abierto');
+    expect(ticket.meta).toContain('foto-evidencia.jpg');
   });
 
   // --- Deep links documentados (seedFromQuery) ---

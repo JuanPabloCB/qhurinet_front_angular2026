@@ -19,6 +19,7 @@ export interface Ticket {
   readonly category: string;
   readonly state: string;
   readonly evidence?: boolean;
+  readonly evidenceName?: string;
 }
 
 export const TICKETS: readonly Ticket[] = [

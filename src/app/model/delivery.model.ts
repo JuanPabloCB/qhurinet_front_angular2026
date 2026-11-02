@@ -34,7 +34,7 @@ export interface RowUpdate {
 
 export const PICKUPS: readonly Delivery[] = [
   { id: 'r1', thread: 't1', code: 'QH-R1', kg: '24 kg', material: 'Cartón plegado', place: 'Minimarket H&J · Magdalena', person: 'Juan Flores', window: 'HOY 14:00–18:00', state: 'En camino', stateBg: '#eef2e4', stateFg: '#3f6224' },
-  { id: 'r2', thread: 't2', code: 'QH-R2', kg: '8,5 kg', material: 'Botellas PET', place: 'Bodega Olivo · San Isidro', person: 'Camila Salazar', window: 'MAÑ 09:00', state: 'Confirmado', stateBg: '#eceee7', stateFg: '#5d6b5f' },
+  { id: 'r2', thread: 't2', code: 'QH-R2', kg: '8,5 kg', material: 'Botellas PET', place: 'Bodega Olivo · San Isidro', person: 'Camila Salazar', window: 'Por coordinar', state: 'Creada', stateBg: '#fdf3dd', stateFg: '#8a6a1f' },
   { id: 'r3', thread: 't3', code: 'QH-R3', kg: '9 kg', material: 'Bolsas de plástico', place: 'Casa · Jesús María', person: 'Emilia Valencia', window: 'AYER 17:00', state: 'Completado', stateBg: '#eef2e4', stateFg: '#3f6224' },
   { id: 'r4', thread: 't3', code: 'QH-R4', kg: '14 kg', material: 'Vidrio mixto', place: 'Rest. La Huerta · Lince', person: 'Camila Salazar', window: 'HACE 2 D', state: 'Completado', stateBg: '#eef2e4', stateFg: '#3f6224' },
 ];

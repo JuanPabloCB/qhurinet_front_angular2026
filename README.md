@@ -1,59 +1,81 @@
-# QhurinetAngular
+# QhuriNet · Consola de reciclaje urbano (frontend Angular 22)
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.0.2.
+Frontend del prototipo **QhuriNet**, una consola web que conecta a **recicladores**
+(ciudadanos que recogen material) con **generadores** (bodegas y comercios que
+publican residuos aprovechables) en Lima. Es una migración fiel del prototipo
+estático de `referencia-html/` a una aplicación **Angular 22** nativa.
 
-## Development server
+> **Alcance:** prototipo visual **sin backend**. No hay API REST, base de datos,
+> Firebase/Supabase ni autenticación real: todos los datos son ficticios y la
+> lógica (acceso, rutas, QR, seguimiento, clasificación de material…) está
+> **simulada en memoria** y se reinicia al recargar. La conexión al backend se
+> planifica para el Sprint 2.
 
-To start a local development server, run:
+## Requisitos
 
-```bash
-ng serve
-```
+- Node.js 20 o superior
+- npm 10 o superior
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Cómo ejecutarlo
 
 ```bash
-ng generate --help
+npm ci            # instala las dependencias exactas del package-lock
+npm start         # o: ng serve
 ```
 
-## Building
+Luego abre `http://localhost:4200/`. Entra con cualquier correo y contraseña
+ficticios y elige el tipo de cuenta:
 
-To build the project run:
+- **Ciudadano** → rol **reciclador** (Mapa, Recojos).
+- **Bodega o comercio** → rol **generador** (Publicar, Anuncios).
+
+Las pestañas Chats, Perfil y Soporte son comunes a ambos roles.
+
+## Scripts
 
 ```bash
-ng build
+npm start              # servidor de desarrollo (ng serve)
+npm run build          # build de producción en dist/
+npx ng test --no-watch # pruebas unitarias (Vitest + jsdom)
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## Estructura del proyecto
 
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
+```
+src/app/
+  model/        Interfaces y datos de muestra (cuentas, materiales, puntos,
+                anuncios, entregas, chat, perfil, soporte, notificaciones) e íconos.
+  services/     auth.service (acceso simulado), auth.guard (protege /app) y
+                console-store (todo el estado simulado de la consola: signals,
+                computed y acciones; equivale a la clase del prototipo).
+  shared/       safe-html.pipe (inyecta sólo SVG propio de confianza) y
+                focus-trap.directive (control de foco accesible en los modales).
+  components/
+    auth/       auth-layout, auth-form (login y registro).
+    console/    console-shell (armazón), sidebar, topbar.
+    map/ pickups/ publish/ publications/ chats/ profile/ support/
+                una pantalla por página (un componente por ruta).
+    delivery-table/   tabla compartida por Recojos y Anuncios.
+    modals/     editar perfil, documentos, pagos, guardar ruta, acción
+                (reprogramar/coordinar/cancelar), seguimiento, escáner QR, valoración.
+  app.routes.ts  Rutas: /login y /registro; /app/* protegido por el guard y con
+                 las pantallas cargadas de forma diferida (loadComponent).
 ```
 
-## Running end-to-end tests
+## Decisiones técnicas
 
-For end-to-end (e2e) testing, run:
+- **Standalone components**, **signals** y `ChangeDetectionStrategy.OnPush`.
+- Aplicación **zoneless** (sin `zone.js`).
+- Router con `withComponentInputBinding()`; la pestaña y el modo se pasan por
+  `data` de la ruta.
+- Estilos fieles al prototipo (en línea en las plantillas) más clases globales
+  `.flow-*`, `.map-*`, `.point-*` en `src/styles.css`. Fuentes IBM Plex por `<link>`.
+- Layout de **escritorio** (igual que el prototipo original).
 
-```bash
-ng e2e
-```
+## Qué es real, simulado o decorativo
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+El archivo `TRAZABILIDAD.md` detalla, pantalla por pantalla, qué funcionalidades
+están implementadas de verdad, cuáles son una simulación (comportamiento
+fabricado sin backend) y cuáles son decorativas (sin acción, a propósito).
 
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+No se modifica nada dentro de `referencia-html/`: es la fuente de verdad visual.

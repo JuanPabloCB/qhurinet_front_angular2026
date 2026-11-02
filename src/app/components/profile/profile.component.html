@@ -19,8 +19,12 @@
         <div style="display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-top: 1px solid #eceee7; font-size: 12.5px;"><div style="color: #5d6b5f;">Correo</div><div>{{ store.profile().email }}</div></div>
         <div style="display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-top: 1px solid #eceee7; font-size: 12.5px;"><div style="color: #5d6b5f;">Teléfono</div><div style="font-family: 'IBM Plex Mono', monospace;">{{ store.profile().phone }}</div></div>
         <div style="display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-top: 1px solid #eceee7; font-size: 12.5px;"><div style="color: #5d6b5f;">Materiales</div><div style="text-align: right;">{{ store.profileMats() }}</div></div>
-        <div style="display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-top: 1px solid #eceee7; font-size: 12.5px;"><div style="color: #5d6b5f;">Visibilidad</div><div style="color: #4c7a2f; font-weight: 600;">Activa</div></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid #eceee7; font-size: 12.5px;">
+          <div style="color: #5d6b5f;">Visibilidad</div>
+          <button type="button" (click)="store.toggleAvailability()" [attr.aria-pressed]="store.available()" title="Cambiar visibilidad" style="font: inherit; font-size: 12.5px; font-weight: 600; background: none; border: none; padding: 0; cursor: pointer;" [style.color]="store.visibilityFg()">{{ store.visibilityLabel() }}</button>
+        </div>
       </div>
+      <div style="font-size: 11px; color: #5d6b5f; line-height: 1.5; margin-top: 10px;">{{ store.visibilityHint() }}</div>
       <div style="display: flex; gap: 8px; margin-top: 18px;">
         <button type="button" class="flow-button" (click)="store.openEditProfile()" style="flex: 1; border-color: #16281f; padding: 10px; font-size: 12.5px;">Editar perfil</button>
         <button type="button" class="flow-button" (click)="store.openDocs()" style="padding: 10px 14px; font-size: 12.5px; font-weight: 400;">Documentos</button>
@@ -54,22 +58,18 @@
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px;">
         <div style="font-size: 15px; font-weight: 600;">Historial de actividad</div>
         <div style="display: flex; gap: 8px;">
-          <div style="border: 1px solid #d8dcd2; border-radius: 7px; padding: 7px 13px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; cursor: pointer;">PDF</div>
-          <div style="border: 1px solid #d8dcd2; border-radius: 7px; padding: 7px 13px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; cursor: pointer;">CSV</div>
+          <button type="button" (click)="store.exportHistoryPdf()" title="Imprimir o guardar como PDF" style="font: inherit; background: #ffffff; border: 1px solid #d8dcd2; border-radius: 7px; padding: 7px 13px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; cursor: pointer;">PDF</button>
+          <button type="button" (click)="store.exportHistoryCsv()" title="Descargar historial en CSV" style="font: inherit; background: #ffffff; border: 1px solid #d8dcd2; border-radius: 7px; padding: 7px 13px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; cursor: pointer;">CSV</button>
         </div>
       </div>
       <div style="display: grid; grid-template-columns: 88px 1.3fr 1fr 120px 90px; gap: 12px; padding: 14px 0 10px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.06em; color: #6c7a6e; border-bottom: 1px solid #eceee7;">
         <div>TIPO</div><div>MATERIAL</div><div>CONTRAPARTE</div><div>FECHA</div><div>VALORACIÓN</div>
       </div>
-      <div style="display: grid; grid-template-columns: 88px 1.3fr 1fr 120px 90px; gap: 12px; padding: 14px 0; border-bottom: 1px solid #eceee7; align-items: center; font-size: 12.5px;">
-        <div style="font-weight: 600;">Recojo</div><div>Bolsas de plástico · 9 kg</div><div>Emilia Valencia</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #5d6b5f;">Hace 8 h</div><div style="font-family: 'IBM Plex Mono', monospace;">5.0</div>
-      </div>
-      <div style="display: grid; grid-template-columns: 88px 1.3fr 1fr 120px 90px; gap: 12px; padding: 14px 0; border-bottom: 1px solid #eceee7; align-items: center; font-size: 12.5px;">
-        <div style="font-weight: 600;">Recojo</div><div>Cartón plegado · 22 kg</div><div>Juan Flores</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #5d6b5f;">Hace 20 h</div><div style="font-family: 'IBM Plex Mono', monospace;">4.8</div>
-      </div>
-      <div style="display: grid; grid-template-columns: 88px 1.3fr 1fr 120px 90px; gap: 12px; padding: 14px 0; align-items: center; font-size: 12.5px;">
-        <div style="font-weight: 600;">Recojo</div><div>Vidrio mixto · 14 kg</div><div>Camila Salazar</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #5d6b5f;">Hace 2 d</div><div style="font-family: 'IBM Plex Mono', monospace;">4.9</div>
-      </div>
+      @for (h of store.history; track h.material; let last = $last) {
+        <div style="display: grid; grid-template-columns: 88px 1.3fr 1fr 120px 90px; gap: 12px; padding: 14px 0; align-items: center; font-size: 12.5px;" [style.border-bottom]="last ? 'none' : '1px solid #eceee7'">
+          <div style="font-weight: 600;">{{ h.type }}</div><div>{{ h.material }}</div><div>{{ h.party }}</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #5d6b5f;">{{ h.date }}</div><div style="font-family: 'IBM Plex Mono', monospace;">{{ h.rating }}</div>
+        </div>
+      }
     </div>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">

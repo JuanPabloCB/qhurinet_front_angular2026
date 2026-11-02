@@ -27,20 +27,24 @@
         <div style="display: inline-block; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 6px;" [style.background]="p.stateBg" [style.color]="p.stateFg">{{ p.state }}</div>
       </div>
       <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end;">
-        <div (click)="store.openChat(p.id)" title="Abrir chat" style="border: 1px solid #d8dcd2; padding: 7px; border-radius: 7px; cursor: pointer; display: flex;">
+        <button type="button" (click)="store.openChat(p.id)" title="Abrir chat" aria-label="Abrir chat" style="font: inherit; background: #ffffff; border: 1px solid #d8dcd2; padding: 7px; border-radius: 7px; cursor: pointer; display: flex;">
           <svg viewBox="0 0 24 24" style="width: 15px; height: 15px; color: #16281f;"><path d="M3 5 H21 V16 H12 L7 20 V16 H3 Z" fill="none" stroke="currentColor" stroke-width="2"></path></svg>
-        </div>
+        </button>
         @if (mode() === 'recojos') {
-          <div (click)="store.openScannerRow(p.id)" title="Escanear QR de entrega" style="border: 1px solid #d8dcd2; padding: 7px; border-radius: 7px; cursor: pointer; display: flex;">
-            <svg viewBox="0 0 24 24" style="width: 15px; height: 15px; color: #16281f;"><rect x="4" y="4" width="6" height="6" fill="none" stroke="currentColor" stroke-width="2"></rect><rect x="14" y="4" width="6" height="6" fill="none" stroke="currentColor" stroke-width="2"></rect><rect x="4" y="14" width="6" height="6" fill="none" stroke="currentColor" stroke-width="2"></rect><path d="M14 14 H20 V20 H14 Z" fill="none" stroke="currentColor" stroke-width="2"></path></svg>
-          </div>
+          @if (p.canScan) {
+            <button type="button" (click)="store.openScannerRow(p.id)" title="Escanear QR de entrega" aria-label="Escanear QR de entrega" style="font: inherit; background: #ffffff; border: 1px solid #d8dcd2; padding: 7px; border-radius: 7px; cursor: pointer; display: flex;">
+              <svg viewBox="0 0 24 24" style="width: 15px; height: 15px; color: #16281f;"><rect x="4" y="4" width="6" height="6" fill="none" stroke="currentColor" stroke-width="2"></rect><rect x="14" y="4" width="6" height="6" fill="none" stroke="currentColor" stroke-width="2"></rect><rect x="4" y="14" width="6" height="6" fill="none" stroke="currentColor" stroke-width="2"></rect><path d="M14 14 H20 V20 H14 Z" fill="none" stroke="currentColor" stroke-width="2"></path></svg>
+            </button>
+          }
         } @else {
-          <div title="Ver anuncio" style="border: 1px solid #d8dcd2; padding: 7px; border-radius: 7px; cursor: pointer; display: flex;">
+          <button type="button" title="Ver anuncio" aria-label="Ver anuncio" style="font: inherit; background: #ffffff; border: 1px solid #d8dcd2; padding: 7px; border-radius: 7px; cursor: pointer; display: flex;">
             <svg viewBox="0 0 24 24" style="width: 15px; height: 15px; color: #16281f;" fill="none" stroke="currentColor" stroke-width="2"><path d="M2.5 12 C5 7.5 8.3 5.5 12 5.5 C15.7 5.5 19 7.5 21.5 12 C19 16.5 15.7 18.5 12 18.5 C8.3 18.5 5 16.5 2.5 12 Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-          </div>
+          </button>
         }
         <button type="button" class="flow-button" [attr.aria-label]="'Acciones de ' + p.id" [attr.aria-expanded]="p.menuOpen" (click)="store.toggleMenu(p.id)" style="padding: 5px 9px;">⋯</button>
       </div>
+      @if (p.canCoordinate) {<div style="grid-column: 1 / -1; display: flex; align-items: center; flex-wrap: wrap; gap: 8px;"><button type="button" class="flow-button flow-primary" (click)="store.coordinate(p.id)">Coordinar recolección</button><span style="font-size: 11px; color: #5d6b5f;">Acuerda el día y la franja con el generador para confirmarla.</span></div>}
+      @if (p.canStartRoute) {<div style="grid-column: 1 / -1; display: flex; align-items: center; flex-wrap: wrap; gap: 8px;"><button type="button" class="flow-button flow-primary" (click)="store.startRoute(p.id)">Iniciar recorrido</button><span style="font-size: 11px; color: #5d6b5f;">Al iniciar quedarás «En camino»: se habilitan el QR y el seguimiento.</span></div>}
       @if (p.canTrack) {<div style="grid-column: 1 / -1;"><button type="button" class="flow-button" (click)="store.track(p.id)">Seguir recolector</button></div>}
       @if (p.reason) {<div style="grid-column: 1 / -1; color: #b1573f; font-size: 12px;">Motivo de cancelación: {{ p.reason }}</div>}
       @if (p.menuOpen) {

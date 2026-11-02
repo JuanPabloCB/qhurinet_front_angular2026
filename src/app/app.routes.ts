@@ -3,14 +3,9 @@ import { authGuard } from './services/auth.guard';
 import { AuthLayoutComponent } from './components/auth/auth-layout/auth-layout.component';
 import { AuthFormComponent } from './components/auth/auth-form/auth-form.component';
 import { ConsoleShellComponent } from './components/console/console-shell/console-shell.component';
-import { MapComponent } from './components/map/map.component';
-import { PickupsComponent } from './components/pickups/pickups.component';
-import { PublishComponent } from './components/publish/publish.component';
-import { PublicationsComponent } from './components/publications/publications.component';
-import { ChatsComponent } from './components/chats/chats.component';
-import { ProfileComponent } from './components/profile/profile.component';
-import { SupportComponent } from './components/support/support.component';
 
+// Las pantallas de /app se cargan de forma diferida (loadComponent): el Mapa,
+// Recojos, etc. sólo se descargan al navegar a su ruta, aligerando el bundle inicial.
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   {
@@ -27,13 +22,13 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: '', redirectTo: 'mapa', pathMatch: 'full' },
-      { path: 'mapa', component: MapComponent, data: { tab: 'mapa' }, title: 'Mapa · QhuriNet' },
-      { path: 'recojos', component: PickupsComponent, data: { tab: 'recojos' }, title: 'Recojos · QhuriNet' },
-      { path: 'publicar', component: PublishComponent, data: { tab: 'publicar' }, title: 'Publicar · QhuriNet' },
-      { path: 'publicaciones', component: PublicationsComponent, data: { tab: 'publicaciones' }, title: 'Anuncios · QhuriNet' },
-      { path: 'chats', component: ChatsComponent, data: { tab: 'chats' }, title: 'Chats · QhuriNet' },
-      { path: 'perfil', component: ProfileComponent, data: { tab: 'perfil' }, title: 'Perfil · QhuriNet' },
-      { path: 'soporte', component: SupportComponent, data: { tab: 'soporte' }, title: 'Soporte · QhuriNet' },
+      { path: 'mapa', loadComponent: () => import('./components/map/map.component').then((m) => m.MapComponent), data: { tab: 'mapa' }, title: 'Mapa · QhuriNet' },
+      { path: 'recojos', loadComponent: () => import('./components/pickups/pickups.component').then((m) => m.PickupsComponent), data: { tab: 'recojos' }, title: 'Recojos · QhuriNet' },
+      { path: 'publicar', loadComponent: () => import('./components/publish/publish.component').then((m) => m.PublishComponent), data: { tab: 'publicar' }, title: 'Publicar · QhuriNet' },
+      { path: 'publicaciones', loadComponent: () => import('./components/publications/publications.component').then((m) => m.PublicationsComponent), data: { tab: 'publicaciones' }, title: 'Anuncios · QhuriNet' },
+      { path: 'chats', loadComponent: () => import('./components/chats/chats.component').then((m) => m.ChatsComponent), data: { tab: 'chats' }, title: 'Chats · QhuriNet' },
+      { path: 'perfil', loadComponent: () => import('./components/profile/profile.component').then((m) => m.ProfileComponent), data: { tab: 'perfil' }, title: 'Perfil · QhuriNet' },
+      { path: 'soporte', loadComponent: () => import('./components/support/support.component').then((m) => m.SupportComponent), data: { tab: 'soporte' }, title: 'Soporte · QhuriNet' },
     ],
   },
   { path: '**', redirectTo: 'login' },
