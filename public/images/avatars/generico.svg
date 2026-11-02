@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96" role="img" aria-label="Usuario sin foto">
+  <title>Usuario sin foto</title>
+  <circle cx="48" cy="48" r="48" fill="#eceee7"/>
+  <circle cx="48" cy="38" r="14" fill="#b9c1b3"/>
+  <path d="M22 82 C25 66 35 58 48 58 C61 58 71 66 74 82 Z" fill="#b9c1b3"/>
+</svg>

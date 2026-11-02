@@ -1,0 +1,36 @@
+<div style="padding: 24px 28px 48px; display: grid; grid-template-columns: 1fr 340px; gap: 20px; align-items: start;">
+
+  <app-delivery-table
+    mode="anuncios"
+    [rows]="store.publications()"
+    [activeCount]="store.activePublications()"
+    completedText="12"
+    [canceledCount]="store.canceledPublications()"
+  />
+
+  <div style="display: flex; flex-direction: column; gap: 20px;">
+    <div style="background: #ffffff; border: 1px solid #e2e5dc; border-radius: 14px; padding: 20px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.06em; color: #6c7a6e;">RESUMEN DEL MES</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+        <div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 24px; font-weight: 600;">148,5</div><div style="font-size: 11px; color: #5d6b5f; margin-top: 3px;">kg entregados</div></div>
+        <div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 24px; font-weight: 600;">12</div><div style="font-size: 11px; color: #5d6b5f; margin-top: 3px;">publicaciones</div></div>
+        <div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 24px; font-weight: 600;">4.8</div><div style="font-size: 11px; color: #5d6b5f; margin-top: 3px;">valoración</div></div>
+        <div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 24px; font-weight: 600;">92%</div><div style="font-size: 11px; color: #5d6b5f; margin-top: 3px;">tasa de recojo</div></div>
+      </div>
+      <div style="height: 1px; background: #eceee7; margin: 18px 0 14px;"></div>
+      <div style="font-size: 11px; color: #5d6b5f;">Meta mensual 160 kg</div>
+      <div style="height: 7px; background: #eceee7; border-radius: 4px; margin-top: 8px; overflow: hidden;"><div style="width: 93%; height: 100%; background: #a3d24a;"></div></div>
+      <div style="display: flex; justify-content: flex-end; font-family: 'IBM Plex Mono', monospace; font-size: 11px; margin-top: 6px;">93%</div>
+    </div>
+
+    <div style="background: #ffffff; border: 1px solid #e2e5dc; border-radius: 14px; padding: 20px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.06em; color: #6c7a6e;">MATERIALES DEL MES</div>
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
+        <div><div style="display: flex; justify-content: space-between; font-size: 12px;"><div>Papel y cartón</div><div style="font-family: 'IBM Plex Mono', monospace;">62,0 kg</div></div><div style="height: 6px; background: #eceee7; border-radius: 3px; margin-top: 6px; overflow: hidden;"><div style="width: 42%; height: 100%; background: #e8b53a;"></div></div></div>
+        <div><div style="display: flex; justify-content: space-between; font-size: 12px;"><div>Vidrio</div><div style="font-family: 'IBM Plex Mono', monospace;">38,5 kg</div></div><div style="height: 6px; background: #eceee7; border-radius: 3px; margin-top: 6px; overflow: hidden;"><div style="width: 26%; height: 100%; background: #5b7f9e;"></div></div></div>
+        <div><div style="display: flex; justify-content: space-between; font-size: 12px;"><div>Plástico</div><div style="font-family: 'IBM Plex Mono', monospace;">30,0 kg</div></div><div style="height: 6px; background: #eceee7; border-radius: 3px; margin-top: 6px; overflow: hidden;"><div style="width: 20%; height: 100%; background: #4c7a2f;"></div></div></div>
+        <div><div style="display: flex; justify-content: space-between; font-size: 12px;"><div>Metal</div><div style="font-family: 'IBM Plex Mono', monospace;">18,0 kg</div></div><div style="height: 6px; background: #eceee7; border-radius: 3px; margin-top: 6px; overflow: hidden;"><div style="width: 12%; height: 100%; background: #b1573f;"></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>

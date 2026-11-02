@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-label="QhuriNet — consola de reciclaje">
+  <title>QhuriNet — consola de reciclaje</title>
+  <rect width="1200" height="630" fill="#16281f"/>
+  <g opacity="0.16" fill="none" stroke="#a3d24a" stroke-width="2">
+    <path d="M0 210 H1200 M0 420 H1200 M300 0 V630 M600 0 V630 M900 0 V630"/>
+  </g>
+  <polyline points="180,470 180,350 430,350 430,220 700,220" fill="none" stroke="#2f4a38" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="180,470 180,350 430,350 430,220 700,220" fill="none" stroke="#a3d24a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="180" cy="470" r="13" fill="#a3d24a"/>
+  <circle cx="700" cy="220" r="13" fill="#a3d24a"/>
+
+  <g transform="translate(96 84)">
+    <rect width="88" height="88" rx="24" fill="#a3d24a"/>
+    <g transform="translate(12 12) scale(1.0)" fill="none" stroke="#16281f" stroke-width="6.3" stroke-linecap="round">
+      <path d="M34.43 43.79 A14 14 0 1 1 45.79 32.43" transform="scale(1.0)"/>
+      <path d="M36.5 36.5 L47 47"/>
+    </g>
+    <circle cx="56" cy="40" r="4.3" fill="#16281f"/>
+  </g>
+
+  <text x="208" y="128" font-family="'IBM Plex Sans', Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#ffffff" letter-spacing="-1">QhuriNet</text>
+  <text x="210" y="160" font-family="'IBM Plex Mono', ui-monospace, monospace" font-size="17" fill="#a3d24a" letter-spacing="3.4">RED DE RECICLAJE</text>
+
+  <text x="96" y="322" font-family="'IBM Plex Sans', Helvetica, Arial, sans-serif" font-size="62" font-weight="600" fill="#ffffff" letter-spacing="-1.4">Conecta a quien genera</text>
+  <text x="96" y="396" font-family="'IBM Plex Sans', Helvetica, Arial, sans-serif" font-size="62" font-weight="600" fill="#a3d24a" letter-spacing="-1.4">con quien recicla.</text>
+  <text x="96" y="460" font-family="'IBM Plex Sans', Helvetica, Arial, sans-serif" font-size="25" fill="#c3d3c6">Mapa de materiales, rutas de recojo, confirmación por QR e incentivos.</text>
+
+  <g font-family="'IBM Plex Mono', ui-monospace, monospace" font-size="17" fill="#8fa392" letter-spacing="2.4">
+    <text x="96" y="556">MAPA</text>
+    <text x="216" y="556">RECOJOS</text>
+    <text x="384" y="556">CHATS</text>
+    <text x="504" y="556">PUNTOS</text>
+    <text x="648" y="556">PERFIL</text>
+    <text x="780" y="556">SOPORTE</text>
+  </g>
+  <rect x="96" y="572" width="1008" height="2" fill="#2f4a38"/>
+</svg>

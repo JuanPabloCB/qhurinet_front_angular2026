@@ -1,0 +1,138 @@
+<div style="padding: 24px 28px 48px; display: grid; grid-template-columns: 1fr 380px; gap: 20px; align-items: start;">
+
+  <div style="background: #ffffff; border: 1px solid #e2e5dc; border-radius: 14px; padding: 24px 26px;">
+    <div style="font-size: 15px; font-weight: 600;">Anunciar material</div>
+    <div style="font-size: 12.5px; color: #5d6b5f; margin-top: 4px;">Los recicladores cerca de ti verán el anuncio en el mapa al publicarlo.</div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px 24px; margin-top: 24px;">
+      <div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.06em; color: #6c7a6e;">TIPO DE MATERIAL</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px;">
+          @for (m of store.matChips(); track m.key) {
+            <div (click)="store.toggleMat(m.key)" style="font-size: 12px; padding: 7px 13px; border-radius: 8px; cursor: pointer;" [style.background]="m.bg" [style.color]="m.fg" [style.border]="'1px solid ' + m.border">{{ m.label }}</div>
+          }
+        </div>
+        @if (store.errMats()) { <div role="alert" style="font-size: 12px; color: #b1573f; margin-top: 8px;">{{ store.errMats() }}</div> }
+      </div>
+      <div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.06em; color: #6c7a6e;">CANTIDAD APROXIMADA</div>
+        <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+          <input type="text" aria-label="Cantidad aproximada en kilos" [value]="store.qty()" (input)="store.onQty($any($event.target).value)" style="width: 110px; background: #f4f5f0; border-radius: 8px; padding: 11px 14px; font-family: 'IBM Plex Mono', monospace; font-size: 16px; outline: none; color: #16281f;" [style.border]="'1px solid ' + store.qtyBorder()" />
+          <div style="font-size: 13px; color: #3d4a3f;">kg</div>
+          <div style="display: flex; gap: 6px; margin-left: 6px;">
+            <div (click)="store.setQty('5')" style="border: 1px solid #d8dcd2; border-radius: 20px; padding: 6px 12px; font-size: 11.5px; cursor: pointer;">5</div>
+            <div (click)="store.setQty('10')" style="border: 1px solid #d8dcd2; border-radius: 20px; padding: 6px 12px; font-size: 11.5px; cursor: pointer;">10</div>
+            <div (click)="store.setQty('25')" style="border: 1px solid #d8dcd2; border-radius: 20px; padding: 6px 12px; font-size: 11.5px; cursor: pointer;">25</div>
+          </div>
+        </div>
+        @if (store.errQty()) { <div role="alert" style="font-size: 12px; color: #b1573f; margin-top: 8px;">{{ store.errQty() }}</div> }
+      </div>
+      <div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.06em; color: #6c7a6e;">DISPONIBILIDAD</div>
+        <div style="display: flex; gap: 8px; margin-top: 10px;">
+          <input type="text" aria-label="Día disponible" placeholder="Hoy" [value]="store.pubDay()" (input)="store.onPubDay($any($event.target).value)" maxlength="20" style="flex: 1; background: #f4f5f0; border-radius: 8px; padding: 11px 14px; font-size: 13px; outline: none; color: #16281f;" [style.border]="'1px solid ' + store.windowBorder()" />
+          <input type="text" aria-label="Rango de horas" placeholder="14:00 – 18:00" [value]="store.pubTime()" (input)="store.onPubTime($any($event.target).value)" maxlength="20" style="flex: 1; background: #f4f5f0; border-radius: 8px; padding: 11px 14px; font-size: 13px; outline: none; color: #16281f;" [style.border]="'1px solid ' + store.windowBorder()" />
+        </div>
+        @if (store.errWindow()) { <div role="alert" style="font-size: 12px; color: #b1573f; margin-top: 8px;">{{ store.errWindow() }}</div> }
+      </div>
+      <div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.06em; color: #6c7a6e;">PAGO (OPCIONAL)</div>
+        <div role="radiogroup" aria-label="Pago" style="display: flex; gap: 7px; margin-top: 10px;">
+          @for (o of store.payChips(); track o.label) {
+            <div (click)="store.selectPay(o.label)" style="border-radius: 8px; padding: 9px 14px; font-size: 12px; cursor: pointer;" [style.border]="'1px solid ' + o.border" [style.font-weight]="o.weight">{{ o.label }}</div>
+          }
+        </div>
+      </div>
+      <div style="grid-column: span 2;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.06em; color: #6c7a6e;">NOTA PARA EL RECICLADOR (OPCIONAL)</div>
+        <textarea aria-label="Nota para el reciclador" placeholder="Ej. las cajas están en la puerta lateral, toca el timbre 2." [value]="store.note()" (input)="store.onNote($any($event.target).value)" maxlength="240" style="width: 100%; height: 84px; resize: none; border: 1px solid #e2e5dc; background: #f4f5f0; border-radius: 8px; padding: 12px 14px; font-size: 13px; outline: none; margin-top: 10px; color: #16281f; line-height: 1.5;"></textarea>
+        @if (store.hasSuggestion()) {
+          <div role="status" style="display: flex; align-items: center; gap: 12px; margin-top: 10px; border: 1px solid #d9e3c3; background: #eef2e4; border-radius: 10px; padding: 12px 14px;">
+            <div style="width: 30px; height: 30px; border-radius: 8px; background: #16281f; color: #a3d24a; display: flex; align-items: center; justify-content: center; flex: none; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600;">AI</div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 12.5px; font-weight: 600;">Sugerencia del sistema: {{ store.suggestionText() }}</div>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #4c7a2f; margin-top: 3px; letter-spacing: 0.05em;">{{ store.suggestionConfidence() }} · SIMULADA POR PALABRAS CLAVE</div>
+            </div>
+            <button type="button" class="flow-button flow-primary" (click)="store.applySuggestion()" style="padding: 7px 12px; font-size: 11.5px;">Aceptar</button>
+            <button type="button" class="flow-button" (click)="store.dismissSuggestion()" style="padding: 7px 12px; font-size: 11.5px;">Rechazar</button>
+          </div>
+        }
+      </div>
+      <div style="grid-column: span 2;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.06em; color: #6c7a6e;">FOTO (OPCIONAL)</div>
+        <div style="display: flex; gap: 10px; margin-top: 10px; align-items: flex-start;">
+          <label title="Agregar foto del material" style="width: 82px; height: 82px; border: 1px dashed #c3cbbc; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #6c7a6e; cursor: pointer;">
+            <svg viewBox="0 0 24 24" style="width: 24px; height: 24px;" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="5.2" width="17.6" height="13.6" rx="2.2"></rect><circle cx="8.6" cy="10.2" r="1.7"></circle><path d="M3.6 16.6 L9 11.4 L13 15 L16 12.6 L20.4 16.6"></path></svg>
+            <div style="font-size: 10px;">Agregar</div>
+            <input type="file" accept="image/*" aria-label="Agregar foto del material" (change)="store.onPhoto($any($event.target))" style="display: none;" />
+          </label>
+          @if (store.photo()) {
+            <div style="position: relative; width: 82px; height: 82px; flex: none;">
+              <img [src]="store.photo()" alt="Foto del material" style="width: 82px; height: 82px; border-radius: 10px; object-fit: cover; border: 1px solid #e2e5dc;" />
+              <button type="button" class="flow-button" aria-label="Quitar foto" (click)="store.removePhoto()" style="position: absolute; top: -8px; right: -8px; width: 24px; height: 24px; padding: 0; border-radius: 50%; font-size: 13px; line-height: 1;">×</button>
+            </div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #5d6b5f; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; align-self: center;">{{ store.photoName() }}</div>
+          } @else {
+            <div style="width: 82px; height: 82px; border-radius: 10px; background: #eceee7; display: flex; align-items: center; justify-content: center; color: #a8b2a2;">
+              <svg viewBox="0 0 24 24" style="width: 26px; height: 26px;" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="5.2" width="17.6" height="13.6" rx="2.2"></rect><circle cx="8.6" cy="10.2" r="1.7"></circle><path d="M3.6 16.6 L9 11.4 L13 15 L16 12.6 L20.4 16.6"></path></svg>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 12px; margin-top: 26px; padding-top: 20px; border-top: 1px solid #eceee7;">
+      <div (click)="store.publishAd()" style="background: #a3d24a; color: #16281f; font-size: 13.5px; font-weight: 600; padding: 12px 28px; border-radius: 8px; cursor: pointer;">Publicar anuncio</div>
+      <div style="border: 1px solid #d8dcd2; border-radius: 8px; padding: 12px 22px; font-size: 13px; cursor: pointer;">Guardar borrador</div>
+      <div style="flex: 1;"></div>
+      <div style="font-size: 12px; color: #5d6b5f;">{{ store.publishHint() }}</div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 20px;">
+    <div style="background: #ffffff; border: 1px solid #e2e5dc; border-radius: 14px; overflow: hidden;">
+      <div style="height: 190px; position: relative; background: #e7ebe1;">
+        <svg viewBox="0 0 400 190" preserveAspectRatio="xMidYMid slice" style="position: absolute; inset: 0; width: 100%; height: 100%;">
+          <rect x="0" y="0" width="400" height="190" fill="#e7ebe1"></rect>
+          <rect x="20" y="16" width="130" height="70" rx="5" fill="#dde3d5"></rect>
+          <rect x="190" y="16" width="150" height="70" rx="5" fill="#dde3d5"></rect>
+          <rect x="20" y="120" width="130" height="60" rx="5" fill="#dde3d5"></rect>
+          <rect x="190" y="120" width="150" height="60" rx="5" fill="#d5e0cb"></rect>
+          <path d="M0 103 H400 M170 0 V190" stroke="#ffffff" stroke-width="12"></path>
+        </svg>
+        <div style="position: absolute; left: 42.5%; top: 54%; transform: translate(-50%, -100%); display: flex; flex-direction: column; align-items: center;">
+          <div style="background: #16281f; color: #a3d24a; font-family: 'IBM Plex Mono', monospace; font-size: 10px; padding: 4px 9px; border-radius: 5px;">TU UBICACIÓN</div>
+          <div style="width: 2px; height: 12px; background: #16281f;"></div>
+        </div>
+        <div style="position: absolute; right: 12px; bottom: 12px; background: #ffffff; border: 1px solid #e2e5dc; border-radius: 7px; padding: 7px 12px; font-size: 11.5px; font-weight: 600; cursor: pointer;">Ajustar punto</div>
+      </div>
+      <div style="padding: 16px 18px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.06em; color: #6c7a6e;">DIRECCIÓN</div>
+        <div style="font-size: 13px; font-weight: 600; margin-top: 7px;">Av. Pershing 345, Magdalena</div>
+        <div style="font-size: 11.5px; color: #5d6b5f; margin-top: 3px;">Referencia: frente al parque</div>
+      </div>
+    </div>
+
+    <div style="background: #ffffff; border: 1px solid #e2e5dc; border-radius: 14px; padding: 20px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.06em; color: #6c7a6e;">VISTA PREVIA DEL ANUNCIO</div>
+      <div style="border: 1px solid #16281f; border-radius: 12px; padding: 16px; margin-top: 14px; box-shadow: 0 2px 0 #16281f;">
+        <div style="display: flex; align-items: flex-start; gap: 12px;">
+          <div style="width: 40px; height: 40px; border-radius: 10px; flex: none; display: flex; align-items: center; justify-content: center;" [style.background]="store.previewColor()" [style.color]="store.previewIconFg()">
+            <div style="width: 23px; height: 23px;" [innerHTML]="store.previewIcon() | safeHtml"></div>
+          </div>
+          <div style="flex: 1;">
+            <div style="display: flex; align-items: baseline; gap: 8px;">
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 600;">{{ store.previewKg() }}</div>
+              <div style="font-size: 13px; font-weight: 600;">{{ store.previewMatLabel() }}</div>
+            </div>
+            <div style="font-size: 11.5px; color: #5d6b5f; margin-top: 4px;">Minimarket H&amp;J · Magdalena</div>
+            <div style="display: flex; gap: 12px; margin-top: 9px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px;">
+              <div>{{ store.previewWindow() }}</div>
+              <div>{{ store.previewPay() }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

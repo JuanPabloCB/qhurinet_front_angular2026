@@ -1,0 +1,29 @@
+<div class="rail">
+  <app-brand-logo />
+
+  <div class="nav">
+    @for (n of store.navItems(); track n.tab) {
+      <a
+        class="nav-item"
+        [class.active]="n.tab === store.activeTab()"
+        [routerLink]="['/app', n.tab]"
+      >
+        <span class="nav-icon" [innerHTML]="n.icon | safeHtml"></span>
+        <span class="nav-label">{{ n.label }}</span>
+      </a>
+    }
+  </div>
+
+  <div class="spacer"></div>
+
+  <button type="button" class="mode" (click)="store.toggleRole()">
+    <div class="mode-top">MODO</div>
+    <div class="mode-val">{{ store.roleShort() }}</div>
+  </button>
+
+  @if (store.profile().photo) {
+    <img class="avatar" [src]="store.profile().photo" alt="Foto de perfil" />
+  } @else {
+    <div class="avatar-initial" aria-label="Iniciales del perfil">{{ store.avatarInitial() }}</div>
+  }
+</div>

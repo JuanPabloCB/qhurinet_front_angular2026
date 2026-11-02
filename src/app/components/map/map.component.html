@@ -1,0 +1,210 @@
+<div style="flex: none; display: grid; grid-template-columns: 400px 1fr; height: calc(100vh - 76px); min-height: 640px;">
+
+  <div style="border-right: 1px solid #e2e5dc; background: #ffffff; display: flex; flex-direction: column; min-height: 0;">
+    <div role="group" aria-label="Vista de la lista" style="padding: 16px 20px 0; display: flex; gap: 7px;">
+      @for (v of store.mapViews(); track v.view) {
+        <button type="button" class="map-button map-chip" [attr.aria-pressed]="v.active" (click)="store.setMapView(v.view)" [style.background]="v.bg" [style.color]="v.fg" [style.border-color]="v.border">{{ v.label }}</button>
+      }
+    </div>
+    <div style="padding: 16px 20px; border-bottom: 1px solid #eceee7; display: flex; flex-wrap: wrap; gap: 7px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6c7a6e; width: 100%; letter-spacing: 0.06em;">FILTROS</div>
+      @for (f of store.filterChips(); track f.label) {
+        <button type="button" class="map-button map-chip" [attr.aria-pressed]="f.active" (click)="f.kind === 'material' ? store.toggleMaterial(f.key) : store.toggleFilter(f.key)" [style.background]="f.bg" [style.color]="f.fg" [style.border-color]="f.border">{{ f.label }}</button>
+      }
+      @if (store.isPointsView()) {
+        <div style="width: 100%; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6c7a6e; margin-top: 6px;">TIPO DE PUNTO</div>
+        @for (f of store.pointTypeChips(); track f.type) {
+          <button type="button" class="map-button map-chip" [attr.aria-pressed]="f.active" (click)="store.togglePointType(f.type)" [style.background]="f.bg" [style.color]="f.fg" [style.border-color]="f.border">{{ f.label }}</button>
+        }
+      }
+    </div>
+
+    <div id="map-list" style="flex: 1; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; min-height: 0;">
+      <div role="status" style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6c7a6e;">{{ store.mapResultCount() }}</div>
+      @if (store.mapEmpty()) {
+        <div style="border: 1px solid #e2e5dc; border-radius: 12px; padding: 20px; font-size: 13px; line-height: 1.5;">
+          <div style="font-weight: 600;">{{ store.emptyMessage() }}</div>
+          <div style="color: #5d6b5f; margin-top: 6px;">Prueba otro nombre o dirección, o ajusta los filtros.</div>
+          <button type="button" class="map-button map-chip" (click)="store.clearMapFilters()" style="background: #ffffff; margin-top: 12px;">Limpiar filtros</button>
+        </div>
+      }
+      @if (store.isAdsView()) {
+        @for (a of store.ads(); track a.id) {
+          <div [attr.data-ad-card]="a.id" style="border-radius: 12px; padding: 16px; background: #ffffff;" [style.border]="'1px solid ' + a.cardBorder" [style.box-shadow]="a.cardShadow">
+            <div style="display: flex; align-items: flex-start; gap: 12px;">
+              <div style="width: 42px; height: 42px; border-radius: 10px; flex: none; display: flex; align-items: center; justify-content: center;" [style.background]="a.color" [style.color]="a.iconFg">
+                <div style="width: 24px; height: 24px;" [innerHTML]="a.icon | safeHtml"></div>
+              </div>
+              <div style="flex: 1; min-width: 0;">
+                <div style="display: flex; align-items: baseline; gap: 8px;">
+                  <div style="font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 600;">{{ a.kg }}</div>
+                  <div style="font-size: 13px; font-weight: 600;">{{ a.material }}</div>
+                </div>
+                <div style="font-size: 12px; color: #5d6b5f; margin-top: 4px;">{{ a.place }}</div>
+                <div style="display: flex; gap: 14px; margin-top: 10px; font-family: 'IBM Plex Mono', monospace; font-size: 11px;">
+                  <div>{{ a.dist }}</div>
+                  <div>{{ a.eta }}</div>
+                  <div>{{ a.window }}</div>
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px; margin-top: 14px;">
+              <div (click)="store.claim(a.id)" style="flex: 1; text-align: center; font-size: 13px; font-weight: 600; padding: 10px; border-radius: 8px; cursor: pointer;" [style.background]="a.btnBg" [style.color]="a.btnFg" [style.border]="'1px solid ' + a.btnBorder">{{ a.btnLabel }}</div>
+              <div (click)="store.goChats()" title="Abrir chat" style="border: 1px solid #d8dcd2; padding: 10px 14px; border-radius: 8px; cursor: pointer; display: flex; align-items: center;">
+                <svg viewBox="0 0 24 24" style="width: 17px; height: 17px; color: #16281f;"><path d="M3 5 H21 V16 H12 L7 20 V16 H3 Z" fill="none" stroke="currentColor" stroke-width="2"></path></svg>
+              </div>
+            </div>
+          </div>
+        }
+      }
+      @if (store.isPointsView()) {
+        @for (p of store.points(); track p.id) {
+          <button type="button" class="map-button" [attr.data-point-card]="p.id" (click)="store.openPoint(p.id)" style="text-align: left; border-radius: 12px; padding: 16px; background: #ffffff;" [style.border]="'1px solid ' + p.cardBorder">
+            <span style="display: flex; align-items: center; gap: 12px;">
+              <span [class]="'point-symbol point-' + p.type"><span style="width: 16px; height: 16px;" [innerHTML]="p.icon | safeHtml"></span></span>
+              <span><span style="display: block; font-size: 13px; font-weight: 600;">{{ p.name }}</span><span style="display: block; font-size: 11px; color: #5d6b5f; margin-top: 4px;">{{ p.typeLabel }}</span></span>
+            </span>
+            <span style="display: block; font-size: 12px; color: #5d6b5f; margin-top: 12px;">{{ p.district }}</span>
+            <span style="display: flex; gap: 16px; margin-top: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 11px;"><span>{{ p.distanceLabel }}</span><span>★ {{ p.ratingLabel }} / 5</span></span>
+            <span style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 12px;">@for (m of p.tags; track m.label) {<span class="material-tag">{{ m.label }}</span>}</span>
+          </button>
+        }
+      }
+    </div>
+  </div>
+
+  <div style="position: relative; min-height: 640px; min-width: 720px; background: #e7ebe1;">
+    <svg viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice" style="position: absolute; inset: 0; width: 100%; height: 100%;">
+      <rect x="0" y="0" width="1000" height="700" fill="#e7ebe1"></rect>
+      <rect x="40" y="40" width="240" height="180" rx="6" fill="#dde3d5"></rect>
+      <rect x="320" y="40" width="300" height="120" rx="6" fill="#dde3d5"></rect>
+      <rect x="660" y="40" width="300" height="200" rx="6" fill="#d5e0cb"></rect>
+      <rect x="40" y="260" width="180" height="220" rx="6" fill="#dde3d5"></rect>
+      <rect x="260" y="200" width="360" height="280" rx="6" fill="#dde3d5"></rect>
+      <rect x="660" y="280" width="300" height="200" rx="6" fill="#dde3d5"></rect>
+      <rect x="40" y="520" width="580" height="140" rx="6" fill="#dde3d5"></rect>
+      <rect x="660" y="520" width="300" height="140" rx="6" fill="#d5e0cb"></rect>
+      <path d="M0 240 H1000 M0 500 H1000 M240 0 V700 M640 0 V700" stroke="#ffffff" stroke-width="14"></path>
+      <path d="M0 130 H1000 M0 380 H1000 M440 0 V700 M840 0 V700" stroke="#f3f5ef" stroke-width="8"></path>
+    </svg>
+
+    <div style="position: absolute; left: 18px; right: 348px; top: 18px; display: flex; gap: 6px; flex-wrap: wrap;">
+      <button type="button" class="flow-button" (click)="store.optimizeRoute()" [attr.aria-pressed]="store.optimized()" style="font-size: 11px; padding: 8px;">Optimizar ruta</button>
+      <button type="button" class="flow-button" (click)="store.openSave()" style="font-size: 11px; padding: 8px;">Guardar ruta</button>
+      <button type="button" class="flow-button" (click)="store.openSaved()" style="font-size: 11px; padding: 8px;">Rutas guardadas</button>
+    </div>
+
+    <div aria-label="Pines del mapa" style="position: absolute; top: 64px; right: 348px; bottom: 175px; left: 0;">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="Trazo de la ruta activa" style="position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none;">
+        <polyline [attr.points]="store.routeTrace()" fill="none" stroke="#16281f" stroke-width="8" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"></polyline>
+        <polyline [attr.points]="store.routeTrace()" fill="none" stroke="#a3d24a" stroke-width="4" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"></polyline>
+      </svg>
+      <div style="position: absolute; left: 12%; top: 92%; transform: translate(-50%, -50%); font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #16281f;">● TÚ</div>
+      @for (a of store.adPins(); track a.id) {
+        <button type="button" class="map-button" [attr.data-ad-pin]="a.id" (click)="store.showAd(a.id)" [title]="a.pinLabel" [attr.aria-label]="a.pinLabel" style="position: absolute; transform: translate(-50%, -50%); background: #ffffff; border-radius: 10px; padding: 7px 9px; display: flex; align-items: center; gap: 6px;" [style.left.%]="a.x" [style.top.%]="a.y" [style.border]="'1px solid ' + a.cardBorder" [style.box-shadow]="a.cardShadow">
+          <span style="width: 18px; height: 18px;" [style.color]="a.color" [innerHTML]="a.icon | safeHtml"></span>
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600;">{{ a.kg }}</span>@if (a.stopNumber > 0) {<span class="stop-number">{{ a.stopNumber }}</span>}
+        </button>
+      }
+      @for (p of store.pointPins(); track p.id) {
+        <button type="button" class="map-button" [attr.data-point-pin]="p.id" [attr.data-point-type]="p.type" [title]="p.pinLabel" [attr.aria-label]="p.pinLabel" (click)="store.openPoint(p.id)" style="position: absolute; transform: translate(-50%, -50%); padding: 4px; background: #ffffff; border-radius: 8px;" [style.left.%]="p.x" [style.top.%]="p.y" [style.border]="'1px solid ' + p.cardBorder">
+          <span [class]="'point-symbol point-' + p.type"><span style="width: 16px; height: 16px;" [innerHTML]="p.icon | safeHtml"></span></span>@if (p.stopNumber > 0) {<span class="stop-number">{{ p.stopNumber }}</span>}
+        </button>
+      }
+    </div>
+
+    <div style="position: absolute; right: 18px; top: 18px; width: 320px; max-height: calc(100% - 170px); overflow-y: auto; background: #ffffff; border: 1px solid #e2e5dc; border-radius: 14px;">
+      <div style="background: #16281f; padding: 14px 18px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #a3d24a; letter-spacing: 0.08em;">RUTA ACTIVA</div>
+        <div style="display: flex; align-items: baseline; gap: 10px; margin-top: 6px;">
+          <div style="font-size: 26px; font-weight: 600; color: #ffffff; font-family: 'IBM Plex Mono', monospace;">{{ store.routeKg() }}</div>
+          <div style="font-size: 12px; color: #c3d3c6;">{{ store.routeMeta() }}</div>
+        </div>
+      </div>
+      <div style="padding: 16px 18px; display: flex; flex-direction: column; gap: 14px;">
+        <div style="display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 13px;"><span>{{ store.routeDistance() }}</span><span>{{ store.routeMinutes() }} min</span></div>
+        @if (store.routeNotice()) { <div role="status" style="font-size: 11px; color: #4c7a2f; line-height: 1.5;">{{ store.routeNotice() }}</div> }
+        @if (store.routeEmpty()) { <div style="font-size: 12px; color: #5d6b5f;">Tu ruta no tiene paradas. Agrega un punto o reclama un anuncio.</div> }
+        @for (p of store.routeStopsView(); track p.id) {
+          <div [attr.data-route-stop]="p.id" style="display: flex; align-items: center; gap: 9px; border-top: 1px solid #eceee7; padding-top: 10px;">
+            <span style="background: #eef2e4; border-radius: 50%; width: 22px; height: 22px; flex: none; text-align: center; padding-top: 4px; font: 11px 'IBM Plex Mono', monospace;">{{ p.number }}</span>
+            <div style="flex: 1;"><button type="button" class="map-button" (click)="store.openStop(p.id)" style="border: none; padding: 0; background: transparent; text-align: left; font-size: 13px; font-weight: 600;">{{ p.name }}</button><div style="font-size: 11px; color: #5d6b5f; margin-top: 3px;">{{ p.detail }}</div></div>
+            <button type="button" class="flow-button" [attr.aria-label]="'Quitar parada ' + p.name" (click)="store.removeStop(p.id)" style="padding: 3px 6px;">×</button>
+          </div>
+        }
+        <div style="height: 1px; background: #eceee7;"></div>
+        @if (store.routeCanScan()) {
+          <div style="display: flex; gap: 8px;">
+            <div (click)="store.openScanner()" style="flex: 1; background: #16281f; color: #ffffff; font-size: 13px; font-weight: 600; text-align: center; padding: 11px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <svg viewBox="0 0 24 24" style="width: 16px; height: 16px;"><rect x="4" y="4" width="6" height="6" fill="none" stroke="currentColor" stroke-width="2"></rect><rect x="14" y="4" width="6" height="6" fill="none" stroke="currentColor" stroke-width="2"></rect><rect x="4" y="14" width="6" height="6" fill="none" stroke="currentColor" stroke-width="2"></rect><path d="M14 14 H20 V20 H14 Z" fill="none" stroke="currentColor" stroke-width="2"></path></svg>
+              Escanear QR
+            </div>
+            <div (click)="store.routeChat()" title="Abrir chat" style="border: 1px solid #d8dcd2; padding: 11px 14px; border-radius: 8px; cursor: pointer; display: flex; align-items: center;">
+              <svg viewBox="0 0 24 24" style="width: 17px; height: 17px; color: #16281f;"><path d="M3 5 H21 V16 H12 L7 20 V16 H3 Z" fill="none" stroke="currentColor" stroke-width="2"></path></svg>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div style="position: absolute; right: 18px; bottom: 18px; background: #ffffff; border: 1px solid #e2e5dc; border-radius: 12px; padding: 14px 16px; display: flex; gap: 22px; align-items: center;">
+      <div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6c7a6e; letter-spacing: 0.06em;">ANUNCIOS NUEVOS</div>
+        <div style="font-size: 12px; font-weight: 600; margin-top: 5px;">Publicados en los últimos 30 min</div>
+        <div style="font-size: 11px; color: #5d6b5f; margin-top: 4px;">Vidrio mixto · Latas de aluminio</div>
+      </div>
+      <div style="text-align: right;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 600;">2</div>
+        <div style="font-size: 11px; color: #5d6b5f; margin-top: 4px;">sin reclamar</div>
+      </div>
+    </div>
+
+    <div role="group" aria-label="Tipos visibles en el mapa" style="position: absolute; left: 18px; bottom: 18px; background: #ffffff; border: 1px solid #e2e5dc; border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;">
+      @for (l of store.pointLegend(); track l.type) {
+        <button type="button" class="map-button" [attr.data-legend]="l.type" [attr.aria-pressed]="l.active" (click)="store.toggleLegend(l.type)" style="display: flex; align-items: center; gap: 8px; font-size: 11px; color: #3d4a3f; border: none; padding: 0; background: transparent;" [style.opacity]="l.opacity" [style.text-decoration]="l.decoration">
+          <span [class]="'point-symbol point-' + l.type" style="width: 12px; height: 12px;"></span>{{ l.label }}
+        </button>
+      }
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 11px; color: #5d6b5f;"><span style="width: 12px; height: 10px; border: 1px solid #16281f; border-radius: 3px;"></span>Anuncio de material · kg</div>
+    </div>
+
+    @if (store.savedPanel()) {
+      <aside class="flow-side" aria-label="Rutas guardadas">
+        <div style="display: flex; align-items: center; justify-content: space-between;"><span class="flow-heading">RUTAS GUARDADAS</span><button class="flow-button" type="button" aria-label="Cerrar rutas guardadas" (click)="store.closeSaved()">×</button></div>
+        @if (!store.savedRoutesView().length) { <div style="font-size: 13px; line-height: 1.5;">No tienes rutas guardadas. Prepara una ruta y pulsa Guardar ruta.</div> }
+        @for (r of store.savedRoutesView(); track r.id) {
+          <div [attr.data-saved-route]="r.id" style="border: 1px solid #e2e5dc; border-radius: 12px; padding: 16px;">
+            <div style="font-size: 14px; font-weight: 600;">{{ r.name }}</div><div style="font-size: 12px; color: #5d6b5f; margin-top: 6px; line-height: 1.5;">{{ r.description }}</div>
+            <div style="font: 11px 'IBM Plex Mono', monospace; margin-top: 12px; line-height: 1.8;">{{ r.count }} paradas · {{ r.distance }} · {{ r.minutes }} min</div>
+            <div style="display: flex; gap: 8px; margin-top: 12px;"><button class="flow-button flow-primary" type="button" (click)="store.loadSavedRoute(r)">Cargar ruta</button><button class="flow-button flow-danger" type="button" (click)="store.removeSavedRoute(r)">Eliminar</button></div>
+          </div>
+        }
+      </aside>
+    }
+
+    @if (store.pointDetail(); as pd) {
+      <aside aria-label="Detalle del punto de reciclaje" (keydown.escape)="store.closePoint()" style="position: absolute; z-index: 5; right: 0; top: 0; bottom: 0; width: 320px; background: #ffffff; border-left: 1px solid #e2e5dc; padding: 20px; display: flex; flex-direction: column; gap: 18px; overflow-y: auto;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.06em; color: #6c7a6e;">PUNTO DE RECICLAJE</div>
+          <button type="button" id="close-point" class="map-button" aria-label="Cerrar detalle del punto" (click)="store.closePoint()" style="background: #ffffff; border: 1px solid #d8dcd2; border-radius: 7px; width: 30px; height: 30px; font-size: 20px;">×</button>
+        </div>
+        <div>
+          <div [class]="'point-symbol point-' + pd.type" style="margin-bottom: 12px;"><div style="width: 16px; height: 16px;" [innerHTML]="pd.icon | safeHtml"></div></div>
+          <div style="font-size: 18px; font-weight: 600;">{{ pd.name }}</div>
+          <div style="font-size: 12px; color: #5d6b5f; margin-top: 6px;">{{ pd.typeLabel }}</div>
+        </div>
+        <div style="border: 1px solid #e2e5dc; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 16px; font-size: 12.5px; line-height: 1.5;">
+          <div><div style="font-weight: 600;">Dirección</div><div style="color: #5d6b5f;">{{ pd.address }} · {{ pd.district }}</div></div>
+          <div><div style="font-weight: 600;">Horario de atención</div><div style="color: #5d6b5f;">{{ pd.hours }}</div></div>
+          <div style="display: flex; justify-content: space-between;"><span>Calificación promedio</span><span style="font-family: 'IBM Plex Mono', monospace;">★ {{ pd.ratingLabel }} / 5</span></div>
+        </div>
+        <div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.06em; color: #6c7a6e;">MATERIALES ACEPTADOS</div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px;">@for (m of pd.tags; track m.label) {<span class="material-tag">{{ m.label }}</span>}</div>
+        </div>
+        <button type="button" class="map-button" [attr.aria-disabled]="pd.inRoute" (click)="store.addToRoute(pd.id)" style="color: #16281f; border: none; font-size: 13px; font-weight: 600; padding: 11px; border-radius: 8px;" [style.background]="pd.routeBg">{{ pd.routeLabel }}</button>
+        <div role="status" style="font-size: 11.5px; line-height: 1.5; color: #5d6b5f;">{{ pd.routeHint }}</div>
+      </aside>
+    }
+  </div>
+</div>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160" role="img" aria-label="Foto del material pendiente">
+  <title>Foto del material pendiente</title>
+  <rect width="160" height="160" rx="18" fill="#eceee7"/>
+  <g fill="none" stroke="#a8b2a2" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="34" y="44" width="92" height="72" rx="8"/>
+    <circle cx="58" cy="68" r="7"/>
+    <path d="M36 104 L64 78 L84 96 L100 82 L124 104"/>
+  </g>
+</svg>

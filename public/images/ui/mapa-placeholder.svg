@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" width="400" height="260" role="img" aria-label="Mapa no disponible">
+  <title>Mapa no disponible</title>
+  <rect width="400" height="260" fill="#e7ebe1"/>
+  <g fill="#dde3d5">
+    <rect x="18" y="16" width="130" height="76" rx="6"/>
+    <rect x="176" y="16" width="140" height="60" rx="6"/>
+    <rect x="18" y="128" width="112" height="82" rx="6"/>
+    <rect x="176" y="110" width="140" height="100" rx="6"/>
+  </g>
+  <rect x="336" y="16" width="48" height="194" rx="6" fill="#d5e0cb"/>
+  <path d="M0 104 H400 M158 0 V260" stroke="#ffffff" stroke-width="14"/>
+  <path d="M0 52 H400 M328 0 V260" stroke="#f3f5ef" stroke-width="7"/>
+  <polyline points="80,190 80,140 190,140 190,70 300,70" fill="none" stroke="#16281f" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="80,190 80,140 190,140 190,70 300,70" fill="none" stroke="#a3d24a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="80" cy="190" r="8" fill="#16281f" stroke="#ffffff" stroke-width="3"/>
+  <circle cx="300" cy="70" r="8" fill="#a3d24a" stroke="#16281f" stroke-width="3"/>
+</svg>

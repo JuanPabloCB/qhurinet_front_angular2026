@@ -1,0 +1,17 @@
+<div class="console">
+  <app-sidebar />
+
+  <div class="main">
+    <app-topbar />
+    <router-outlet />
+  </div>
+
+  @if (store.editProfile()) { <app-edit-profile-dialog /> }
+  @if (store.docsOpen()) { <app-documents-dialog /> }
+  @if (store.payOpen()) { <app-payment-dialog /> }
+  @if (store.saveDialog()) { <app-save-route-dialog /> }
+  @if (store.actionDialog()) { <app-action-dialog /> }
+  @if (store.trackingVisible()) { <app-tracking-dialog /> }
+  @if (store.scannerOpen()) { <app-scanner-dialog /> }
+  @if (store.rateOpen()) { <app-rate-dialog /> }
+</div>

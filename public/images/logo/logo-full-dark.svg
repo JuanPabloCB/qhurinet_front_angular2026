@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 64" width="260" height="64" role="img" aria-label="QhuriNet">
+  <title>QhuriNet — logotipo completo sobre fondo oscuro</title>
+  <rect width="64" height="64" rx="18" fill="#a3d24a"/>
+  <g fill="none" stroke="#16281f" stroke-width="4.6" stroke-linecap="round">
+    <path d="M34.43 43.79 A14 14 0 1 1 45.79 32.43"/>
+    <path d="M36.5 36.5 L47 47"/>
+  </g>
+  <circle cx="32" cy="16" r="3.1" fill="#16281f"/>
+  <text x="80" y="34" font-family="'IBM Plex Sans', Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#ffffff" letter-spacing="-0.4">QhuriNet</text>
+  <text x="81" y="49" font-family="'IBM Plex Mono', ui-monospace, monospace" font-size="9.5" fill="#8fa392" letter-spacing="1.6">RED DE RECICLAJE</text>
+</svg>

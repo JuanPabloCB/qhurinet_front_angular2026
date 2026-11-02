@@ -1,0 +1,61 @@
+<div style="padding: 24px 28px 48px; display: grid; grid-template-columns: 1fr 360px; gap: 20px; align-items: start;">
+
+  <div style="background: #ffffff; border: 1px solid #e2e5dc; border-radius: 14px; padding: 24px 26px;">
+    <div style="font-size: 15px; font-weight: 600;">Preguntas frecuentes</div>
+    <div style="display: flex; flex-direction: column; margin-top: 8px;">
+      @for (q of store.faqs(); track q.index) {
+        <div style="border-top: 1px solid #eceee7; padding: 16px 0;">
+          <div (click)="store.toggleFaq(q.index)" style="display: flex; align-items: center; gap: 14px; cursor: pointer;">
+            <div style="flex: 1; font-size: 13.5px; font-weight: 600;">{{ q.q }}</div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 15px; color: #6c7a6e;">{{ q.sign }}</div>
+          </div>
+          @if (q.open) { <div style="font-size: 12.5px; color: #3d4a3f; line-height: 1.6; margin-top: 10px; max-width: 620px;">{{ q.a }}</div> }
+        </div>
+      }
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 20px;">
+    <div style="background: #16281f; border-radius: 14px; padding: 22px 24px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; color: #a3d24a;">SITUACIÓN EXTREMA</div>
+      <div style="font-size: 15px; font-weight: 600; color: #ffffff; margin-top: 10px; line-height: 1.4;">Habla por teléfono con el equipo administrativo</div>
+      <div style="font-size: 12px; color: #c3d3c6; margin-top: 8px; line-height: 1.55;">Para riesgos de seguridad, incumplimientos graves o suplantación de identidad.</div>
+      <div style="background: #a3d24a; color: #16281f; font-size: 13.5px; font-weight: 600; text-align: center; padding: 12px; border-radius: 8px; margin-top: 18px; cursor: pointer;">Llamar ahora</div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8fa392; text-align: center; margin-top: 10px;">DISPONIBLE 24/7</div>
+    </div>
+
+    <div style="background: #ffffff; border: 1px solid #e2e5dc; border-radius: 14px; padding: 22px 24px;">
+      <div style="font-size: 14px; font-weight: 600;">Reportar un caso</div>
+      <div role="radiogroup" aria-label="Categoría del caso" style="display: flex; flex-wrap: wrap; gap: 7px; margin-top: 14px;">
+        @for (c of store.reportChips(); track c.label) {
+          <div (click)="store.selectReportCategory(c.label)" style="border-radius: 20px; padding: 6px 13px; font-size: 12px; cursor: pointer;" [style.border]="'1px solid ' + c.border" [style.font-weight]="c.weight">{{ c.label }}</div>
+        }
+      </div>
+      <textarea aria-label="Cuéntanos qué pasó" placeholder="Cuéntanos qué pasó" [value]="store.reportText()" (input)="store.onReportText($any($event.target).value)" maxlength="500" style="width: 100%; height: 92px; resize: none; border: 1px solid #e2e5dc; background: #f4f5f0; border-radius: 8px; padding: 12px 14px; font-size: 13px; outline: none; margin-top: 14px; color: #16281f; line-height: 1.5;"></textarea>
+      <div style="display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap;">
+        <label class="flow-button" style="display: inline-block; font-weight: 400;">Adjuntar evidencia<input type="file" accept="image/*" aria-label="Adjuntar evidencia" (change)="store.onReportFile($any($event.target))" style="display: none;" /></label>
+        @if (store.reportFile()) {
+          <div style="display: flex; align-items: center; gap: 6px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #3d4a3f; max-width: 200px;"><span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ store.reportFile() }}</span><button type="button" aria-label="Quitar evidencia" (click)="store.removeReportFile()" style="font: inherit; background: none; border: none; color: #b1573f; cursor: pointer; padding: 0;">×</button></div>
+        } @else {
+          <div style="font-size: 11.5px; color: #8b9186;">Imagen opcional</div>
+        }
+      </div>
+      @if (store.reportError()) { <div role="alert" style="font-size: 12px; color: #b1573f; margin-top: 10px;">{{ store.reportError() }}</div> }
+      @if (store.reportNotice()) { <div role="status" style="font-size: 12px; color: #3f6224; background: #eef2e4; border-radius: 8px; padding: 9px 12px; margin-top: 10px;">{{ store.reportNotice() }}</div> }
+      <button type="button" (click)="store.sendReport()" style="width: 100%; font: inherit; background: #16281f; color: #ffffff; font-size: 13px; font-weight: 600; text-align: center; padding: 11px; border: none; border-radius: 8px; margin-top: 12px; cursor: pointer;">Enviar reporte</button>
+    </div>
+
+    <div style="background: #ffffff; border: 1px solid #e2e5dc; border-radius: 14px; padding: 22px 24px;">
+      <div style="font-size: 14px; font-weight: 600;">Mis tickets</div>
+      <div style="display: flex; flex-direction: column; margin-top: 8px;">
+        @for (t of store.ticketsView(); track t.id) {
+          <div style="display: flex; align-items: center; gap: 12px; padding: 14px 0; border-top: 1px solid #eceee7;">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6c7a6e; flex: none;">{{ t.id }}</div>
+            <div style="flex: 1; min-width: 0;"><div style="font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ t.title }}</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #8b9186; margin-top: 3px;">{{ t.meta }}</div></div>
+            <div style="font-size: 11px; font-weight: 600; padding: 4px 9px; border-radius: 6px; flex: none;" [style.background]="t.bg" [style.color]="t.fg">{{ t.state }}</div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

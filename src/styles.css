@@ -1,0 +1,223 @@
+/* Estilos globales de QhuriNet. Portados de referencia-html/index.html (<helmet>).
+   Clases compartidas por toda la consola; los estilos específicos de cada
+   pantalla viven inline en su plantilla (fiel al prototipo) o en su .css. */
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #f4f5f0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'IBM Plex Sans', Helvetica, sans-serif;
+  color: #16281f;
+}
+
+a {
+  color: #4c7a2f;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #16281f;
+}
+
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #8b9186;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cdd2c4;
+  border-radius: 4px;
+}
+
+/* Botones de mapa y chips */
+.map-button {
+  font-family: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.map-button:focus-visible {
+  outline: 2px solid #4c7a2f;
+  outline-offset: 3px;
+}
+
+.map-button[data-ad-pin] {
+  white-space: nowrap;
+}
+
+.map-chip {
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid #d8dcd2;
+}
+
+/* Símbolos de los puntos de reciclaje */
+.point-symbol {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.point-acopio {
+  border-radius: 5px;
+  background: #4c7a2f;
+  color: #ffffff;
+}
+
+.point-bodega {
+  clip-path: polygon(50% 0, 100% 30%, 100% 100%, 0 100%, 0 30%);
+  background: #e8b53a;
+  color: #16281f;
+}
+
+.point-reciclador {
+  border-radius: 50%;
+  background: #b1573f;
+  color: #ffffff;
+}
+
+.point-municipal {
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  background: #5b7f9e;
+  color: #ffffff;
+}
+
+.material-tag {
+  font-size: 11px;
+  border: 1px solid #d9e3c3;
+  border-radius: 20px;
+  padding: 4px 9px;
+  background: #eef2e4;
+  color: #3f6224;
+}
+
+/* Controles de formulario (clase .flow-*) */
+.flow-button {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: #16281f;
+  background: #ffffff;
+  border: 1px solid #d8dcd2;
+  border-radius: 8px;
+  padding: 9px 12px;
+  cursor: pointer;
+}
+
+.flow-button:focus-visible,
+.flow-field:focus-visible {
+  outline: 2px solid #4c7a2f;
+  outline-offset: 2px;
+}
+
+.flow-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.flow-primary {
+  background: #a3d24a;
+  border-color: #a3d24a;
+}
+
+.flow-danger {
+  color: #b1573f;
+  border-color: #b1573f;
+}
+
+.flow-field {
+  width: 100%;
+  margin-top: 7px;
+  padding: 11px 12px;
+  font: inherit;
+  font-size: 13px;
+  color: #16281f;
+  background: #f4f5f0;
+  border: 1px solid #e2e5dc;
+  border-radius: 8px;
+}
+
+.flow-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(22, 40, 31, 0.62);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.flow-dialog {
+  width: 440px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.flow-heading {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: #6c7a6e;
+  letter-spacing: 0.06em;
+}
+
+.flow-side {
+  position: absolute;
+  z-index: 6;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 320px;
+  background: #ffffff;
+  border-left: 1px solid #e2e5dc;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+.stop-number {
+  position: absolute;
+  right: -7px;
+  top: -9px;
+  width: 19px;
+  height: 19px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  background: #16281f;
+  color: #ffffff;
+  font: 10px 'IBM Plex Mono', monospace;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

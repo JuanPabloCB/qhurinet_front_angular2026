@@ -1,0 +1,158 @@
+<div class="auth-card" (keydown.enter)="submit()">
+  <div>
+    <div class="flow-heading">{{ heading() }}</div>
+    <div class="auth-card-title">{{ title() }}</div>
+    <div class="auth-card-subtitle">{{ subtitle() }}</div>
+  </div>
+
+  <div>
+    <div class="account-label">TIPO DE CUENTA</div>
+    <div role="radiogroup" aria-label="Tipo de cuenta" class="account-grid">
+      @for (card of accountCards(); track card.key) {
+        <button
+          type="button"
+          class="flow-button account-card"
+          role="radio"
+          [attr.aria-checked]="card.selected"
+          [style.border-color]="card.selected ? '#16281f' : '#d8dcd2'"
+          [style.background]="card.selected ? '#eef2e4' : '#ffffff'"
+          [style.box-shadow]="card.selected ? '0 2px 0 #16281f' : 'none'"
+          (click)="selectAccount(card.key)"
+        >
+          <span class="account-card-icon">
+            <span class="account-card-glyph">
+              @switch (card.key) {
+                @case ('ciudadano') {
+                  <svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <circle cx="12" cy="8.5" r="4" />
+                    <path d="M4.5 20 C5.5 15.5 8.5 14 12 14 C15.5 14 18.5 15.5 19.5 20" />
+                  </svg>
+                }
+                @case ('bodega') {
+                  <svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 10 H20 L18 5 H6 Z M5 10 V20 H19 V10 M9 20 V14 H15 V20" />
+                  </svg>
+                }
+              }
+            </span>
+          </span>
+          <div>
+            <div class="account-card-name">{{ card.label }}</div>
+            <div class="account-card-hint">{{ card.hint }}</div>
+            <div class="account-card-role">ENTRA COMO {{ card.roleLabel }}</div>
+          </div>
+        </button>
+      }
+    </div>
+    @if (errors().account) {
+      <div role="alert" class="account-error">{{ errors().account }}</div>
+    }
+  </div>
+
+  <div class="fields-grid">
+    @if (mode() === 'register') {
+      <div class="field-full">
+        <label class="field-label">
+          Nombre y apellidos
+          <input
+            class="flow-field"
+            type="text"
+            aria-label="Nombre y apellidos"
+            [value]="form().name"
+            (input)="update('name', $event)"
+            placeholder="Ej. Marco Quispe Rojas"
+            maxlength="80"
+          />
+        </label>
+        @if (errors().name) {
+          <div role="alert" class="field-error">{{ errors().name }}</div>
+        }
+      </div>
+    }
+
+    <div class="field-full">
+      <label class="field-label">
+        Correo electrónico
+        <input
+          class="flow-field"
+          type="email"
+          aria-label="Correo electrónico"
+          [value]="form().email"
+          (input)="update('email', $event)"
+          placeholder="nombre@dominio.com"
+          maxlength="80"
+        />
+      </label>
+      @if (errors().email) {
+        <div role="alert" class="field-error">{{ errors().email }}</div>
+      }
+    </div>
+
+    @if (mode() === 'register') {
+      <div>
+        <label class="field-label">
+          Teléfono
+          <input
+            class="flow-field"
+            type="tel"
+            aria-label="Teléfono"
+            [value]="form().phone"
+            (input)="update('phone', $event)"
+            placeholder="+51 9xx xxx xxx"
+            maxlength="20"
+          />
+        </label>
+        @if (errors().phone) {
+          <div role="alert" class="field-error">{{ errors().phone }}</div>
+        }
+      </div>
+    }
+
+    <div [style.grid-column]="mode() === 'register' ? 'auto' : 'span 2'">
+      <label class="field-label">
+        Contraseña
+        <input
+          class="flow-field"
+          type="password"
+          aria-label="Contraseña"
+          [value]="form().password"
+          (input)="update('password', $event)"
+          placeholder="Mínimo 8 caracteres"
+          maxlength="80"
+        />
+      </label>
+      @if (errors().password) {
+        <div role="alert" class="field-error">{{ errors().password }}</div>
+      }
+    </div>
+  </div>
+
+  <button type="button" class="flow-button flow-primary submit-button" (click)="submit()">
+    {{ buttonLabel() }}
+  </button>
+
+  <div class="auth-divider">
+    <div class="auth-divider-line"></div>
+    O CONTINÚA CON
+    <div class="auth-divider-line"></div>
+  </div>
+
+  <div class="social-grid">
+    <button type="button" class="flow-button social-button" (click)="socialAuth()">
+      <span class="social-badge social-badge-google">G</span>Google
+    </button>
+    <button type="button" class="flow-button social-button" (click)="socialAuth()">
+      <span class="social-badge social-badge-facebook">f</span>Facebook
+    </button>
+  </div>
+
+  <div class="auth-switch">
+    @if (mode() === 'login') {
+      ¿No tienes cuenta?
+      <button type="button" class="auth-link" (click)="switchTo('registro')">Regístrate</button>
+    } @else {
+      ¿Ya tienes cuenta?
+      <button type="button" class="auth-link" (click)="switchTo('login')">Inicia sesión</button>
+    }
+  </div>
+</div>
