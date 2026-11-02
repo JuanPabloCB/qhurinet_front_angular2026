@@ -843,7 +843,7 @@ export class ConsoleStore {
   readonly publishHint = computed(() => (this.pickedMats().length ? 'Visible para 14 recicladores cerca' : 'Elige al menos un material'));
   // Límite de la nota (US 02-EP1): tope blando. En vez de cortar el texto en
   // seco, se deja escribir y, si se pasa, se muestra un error que bloquea Publicar.
-  readonly noteLimit = 240;
+  readonly noteLimit = 200;
   readonly errQty = computed(() => this.pubErrors()['qty'] || '');
   readonly errMats = computed(() => this.pubErrors()['mats'] || '');
   readonly errWindow = computed(() => this.pubErrors()['window'] || '');
@@ -885,7 +885,7 @@ export class ConsoleStore {
     const pub: NewPub = {
       id: 'n' + (this.newPubs().length + 1), mats: mats.slice(),
       kg: this.qty() + ' kg', window: (this.pubDay().trim() + ' ' + this.pubTime().trim()).toUpperCase().slice(0, 40),
-      pay: this.pubPay(), note: this.note().trim().slice(0, 240),
+      pay: this.pubPay(), note: this.note().trim().slice(0, this.noteLimit),
     };
     this.newPubs.update((n) => [...n, pub]);
     this.pubErrors.set({}); this.qty.set(''); this.materials.set({}); this.pubDay.set(''); this.pubTime.set('');
